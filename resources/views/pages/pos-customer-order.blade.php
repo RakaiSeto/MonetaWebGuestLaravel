@@ -6,7 +6,7 @@
   <script src="{{URL::asset('assets/js/demo/pos-customer-order.demo.js')}}"></script>
 @endpush
 
-@php ($storeName = session()->get('sessStoreName'))
+@php ($storeName = session()->get('name'))
 
 @section('content')
 	<!-- BEGIN pos -->
@@ -16,7 +16,7 @@
 			<div class="pos-menu">
 				<!-- BEGIN logo -->
 				<div class="logo">
-					<a href="{{ url('/')}}">
+					<a href="#">
 						<div class="logo-img"><i class="fa fa-bowl-rice"></i></div>
 						<div class="logo-text text-center">{{$storeName}}</div>
 					</a>
@@ -89,20 +89,13 @@
 			<div class="pos-sidebar" id="pos-sidebar">
 				<div class="h-100 d-flex flex-column p-0">
 					<div class="d-flex">
-						<button class="btn btn-dark flex-1" onclick="window.location.href='{{ url('/pos/customer-order-list')}}'" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-							<i class="fas fa-arrow-left"></i>	other order
-						</button>
-						
-						<button class="pos-mobile-sidebar-toggler-top btn btn-danger" data-toggle-class="pos-mobile-sidebar-toggled" data-toggle-target="#pos">
+						<button class="pos-mobile-sidebar-toggler-top btn btn-danger w-100" data-toggle-class="pos-mobile-sidebar-toggled" data-toggle-target="#pos">
 							<i class="far fa-window-close"></i>
 						</button>
 					</div>
 					<!-- BEGIN pos-sidebar-header -->
 					<div class="pos-sidebar-header">
 						<div class="dropdown mx-auto d-flex" style="flex-direction: column">
-							<button class="btn btn-dark disabled" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-order-id="{{$result->getInfo()[0]->getOrderid()}}" id="order_id">
-							  Order id : {{$result->getInfo()[0]->getOrderid()}}
-							</button>
 							<button class="btn btn-dark disabled" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 							  Cust name : {{$result->getInfo()[0]->getCustomer()}}
 							</button>
@@ -281,7 +274,7 @@
 							@else	
 								@foreach ($result->getDetail() as $detail)
 								<div class="pos-order">
-									<div class="pos-order-product" id="parent{{$detail->getMenuid()}}">
+									<div class="pos-order-product" id="parent{{$detail->getId()}}">
 										<div class="img" style="background-image: url(/assets/img/pos/product-1.jpg)"></div>
 										<div class="flex-1">
 											<div class="d-flex">
@@ -290,7 +283,7 @@
 												@else
 												<div class="h6 mb-1">{{$detail->getMenu()}} (Addon)</div>
 												@endif
-												<div class="flex-1 text-end" data-onesPrice="{{$detail->getPrice()}}" name="qtyOrderHistory{{$detail->getMenuid()}}price">Rp. {{number_format($detail->getSubtotal())}}</div>
+												<div class="flex-1 text-end" data-onesPrice="{{$detail->getPrice()}}" name="qtyOrderHistory{{$detail->getId()}}price">Rp. {{number_format($detail->getSubtotal())}}</div>
 											</div>
 											<div class="small">Rp. {{number_format($detail->getPrice())}}</div>
 											@if (count($detail->getAddonname()) == 0)
@@ -305,15 +298,14 @@
 												</div>
 											@endif
 											<div class="d-flex">
-												<button type="reset" data-field="qtyOrderHistory{{$detail->getMenuid()}}" class="btn btn-secondary btn-sm me-2 btn-cancel"><i class="fa fa-undo"></i></button>
-												<button class="btn btn-secondary btn-number" data-type="minus" data-field="qtyOrderHistory{{$detail->getMenuid()}}"><i class="fa fa-minus"></i></button>
+												<button type="reset" data-field="qtyOrderHistory{{$detail->getId()}}" class="btn btn-secondary btn-sm me-2 btn-cancel"><i class="fa fa-undo"></i></button>
+												<button class="btn btn-secondary btn-number" data-type="minus" data-field="qtyOrderHistory{{$detail->getId()}}"><i class="fa fa-minus"></i></button>
 												<input type="text" class="form-control w-50px fw-bold mx-2 text-center input-number" min="1" max="@foreach ($menus as $menu)
-													@if ($menu->getMenuid() == $detail->getMenuid())
-														{{ $menu->getStock() }}
+													@if (str_contains($detail->getId(), $menu->getMenuid()))
+														{{$detail->getAmount() + $menu->getStock()}}
 													@endif
-												@endforeach" id="qtyOrderHistory{{$detail->getMenuid()}}" name="qtyOrderHistory{{$detail->getMenuid()}}" data-initialValue="{{$detail->getAmount()}}" value="{{$detail->getAmount()}}">
-												<button class="btn btn-secondary btn-number" data-type="plus" data-field="qtyOrderHistory{{$detail->getMenuid()}}"><i class="fa fa-plus"></i></button>
-												<a href="#" id="cancel{{$detail->getMenuid()}}" class="btn btn-default btn-sm btn-trash ms-2" type="button"><i class="fa fa-trash"></i></a>
+												@endforeach" id="qtyOrderHistory{{$detail->getId()}}" name="qtyOrderHistory{{$detail->getId()}}" data-initialValue="{{$detail->getAmount()}}" data-change = "" value="{{$detail->getAmount()}}" data-value-lama="{{$detail->getAmount()}}">
+												<button class="btn btn-secondary btn-number" data-type="plus" data-field="qtyOrderHistory{{$detail->getId()}}"><i class="fa fa-plus"></i></button>
 											</div>
 										</div>
 									</div>
@@ -330,32 +322,34 @@
 					<div class="pos-sidebar-footer">
 						<div class="d-flex align-items-center mb-2">
 							<div>Subtotal</div>
-							<div class="flex-1 text-end h6 mb-0">Rp. {{number_format($result->getInfo()[0]->getTotal())}}</div>
+							<div class="flex-1 text-end h6 mb-0" id="cartTotal">Rp. {{number_format($result->getInfo()[0]->getTotal())}}</div>
 						</div>
 						<div class="d-flex align-items-center">
 							@if ($result->getInfo()[0]->getGrandtotal() == 0)
 								<div>Taxes (11%)</div>
-								<div class="flex-1 text-end h6 mb-0">Rp. {{number_format($result->getInfo()[0]->getTax())}}</div>
+								<div class="flex-1 text-end h6 mb-0" id="cartTax">Rp. {{number_format($result->getInfo()[0]->getTax())}}</div>
 							@else
 								
 								<div>Taxes ({{number_format(($result->getInfo()[0]->getGrandtotal() / ($result->getInfo()[0]->getTotal() + $result->getInfo()[0]->getService()) - 1) * 100)}}%)</div>
-								<div class="flex-1 text-end h6 mb-0">Rp. {{number_format($result->getInfo()[0]->getTax())}}</div>
+								<div class="d-none" id="tax-rate" data-tax="{{($result->getInfo()[0]->getGrandtotal() / ($result->getInfo()[0]->getTotal() + $result->getInfo()[0]->getService()) - 1) * 100}}"></div>
+								<div class="flex-1 text-end h6 mb-0" id="cartTax">Rp. {{number_format($result->getInfo()[0]->getTax())}}</div>
+							@endif
+						</div>
+						<div class="d-flex align-items-center">
+							@if ($result->getInfo()[0]->getGrandtotal() == 0)
+								<div>Service (0%)</div>
+								<div class="flex-1 text-end h6 mb-0" id="cartService">Rp. {{number_format($result->getInfo()[0]->getService())}}</div>
+							@else
+								
+								<div>Service ({{number_format((($result->getInfo()[0]->getGrandtotal() - $result->getInfo()[0]->getTax() - $result->getInfo()[0]->getTotal()) / $result->getInfo()[0]->getTotal()) * 100)}}%)</div>
+								<div class="d-none" id="service-rate" data-service="{{(($result->getInfo()[0]->getGrandtotal() - $result->getInfo()[0]->getTax() - $result->getInfo()[0]->getTotal()) / $result->getInfo()[0]->getTotal()) * 100}}"></div>
+								<div class="flex-1 text-end h6 mb-0" id="cartService">Rp. {{number_format($result->getInfo()[0]->getService())}}</div>
 							@endif
 						</div>
 						<hr class="opacity-1 my-10px">
 						<div class="d-flex align-items-center mb-2">
 							<div>Total</div>
-							<div class="flex-1 text-end h4 mb-0">Rp. {{number_format($result->getInfo()[0]->getGrandtotal())}}</div>
-						</div>
-						<div class="mt-3">
-							<div class="d-flex">
-								<a href="#" class="btn btn-theme flex-fill d-flex align-items-center justify-content-center">
-									<span>
-										<i class="fa fa-cash-register fa-lg my-10px d-block"></i>
-										<span class="small fw-semibold">Close Order</span>
-									</span>
-								</a>
-							</div>
+							<div class="flex-1 text-end h4 mb-0" id="cartGrandTotal">Rp. {{number_format($result->getInfo()[0]->getGrandtotal())}}</div>
 						</div>
 					</div>
 					<!-- END pos-sidebar-footer -->
@@ -398,7 +392,6 @@
 							<form action="#" class="formAddToCart" id="formCart{{$menu->getMenuid()}}" method="POST">
 							@csrf
 							<div class="d-flex mb-3">
-								<input type="hidden" name="order_id" value="{{$result->getInfo()[0]->getOrderid()}}">
 								<input type="hidden" name="menu_id" value="{{$menu->getMenuid()}}">
 
 								<button class="btn btn-secondary btn-number" data-type="minus" data-field="qtyToCart{{$menu->getMenuid()}}"><i class="fa fa-minus"></i></button>
@@ -434,7 +427,7 @@
 									<a href="#" class="btn btn-default fw-semibold mb-0 d-block py-3" data-bs-dismiss="modal">Cancel</a>
 								</div>
 								<div class="col-8">
-									<button type="submit" class="btn btn-theme fw-semibold d-flex justify-content-center align-items-center py-3 m-0 buttonAddCart" id="buttonCart{{$menu->getMenuid()}}">Add to cart <i class="fa fa-plus ms-2 my-n3"></i></button>
+									<button type="submit" class="btn btn-theme fw-semibold d-flex justify-content-center align-items-center py-3 m-0 buttonAddCart" data-form-id="formCart{{$menu->getMenuid()}}" id="buttonCart{{$menu->getMenuid()}}" onclick="confirmation(this)">Add to cart <i class="fa fa-plus ms-2 my-n3"></i></button>
 								</div>
 							</div>
 							</form>

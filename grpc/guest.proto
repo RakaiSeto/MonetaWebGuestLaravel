@@ -1,0 +1,207 @@
+syntax = "proto3";
+option go_package = ".";
+package Guest;
+
+// === RPC Monitor ===
+message RPCMonitorRequest {
+  string anyvalue = 1;
+}
+message RPCMonitorResponse {
+  bool status = 1;
+}
+
+// === Login ===
+message GuestLoginRequest {
+  string qrcode = 1;
+}
+message GuestLoginList {
+  string sessionid = 1;
+  string qrcode = 2;
+  string clientid = 3;
+  string storeid = 4;
+  string typeid = 5;
+  string orderid = 6;
+  string orderidsimple = 7;
+  string tableno = 8;
+  string name = 9;
+  string region = 10;
+  string country = 11;
+  string tagline = 12;
+  string logo = 13;
+  bool isorder = 14;
+}
+message GuestLoginResponse {
+  string status = 1;
+  repeated GuestLoginList results = 3;
+}
+
+// === Login ===
+message GuestCheckSessionRequest {
+  string sessionid = 1;
+}
+message GuestCheckSessionList {
+  string sessionid = 1;
+}
+message GuestCheckSessionResponse {
+  string status = 1;
+  string session = 2;
+  repeated GuestCheckSessionList results = 3;
+}
+
+// === Items Category ===
+message GuestCategoryRequest {
+  string sessionid = 1;
+  string qrcode = 2;
+}
+message GuestCategoryList {
+  string categoryid = 1;
+  string name = 2;
+  string description = 3;
+  string imageurl = 4;
+  double totalmenu = 5;
+}
+message GuestCategoryResponse {
+  string status = 1;
+  string session = 2;
+  repeated GuestCategoryList results = 3;
+}
+
+// === Items Menu ===
+message GuestMenuRequest {
+  string sessionid = 1;
+  string qrcode = 2;
+}
+message GuestMenuList {
+  string menuid = 1;
+  string categoryname = 2;
+  string name = 3;
+  string description = 4;
+  double size = 5;
+  double amount = 6;
+  double sweet = 7;
+  double hot = 8;
+  double price = 9;
+  double stock = 10;
+  string imageurl = 11;
+  repeated DetailPOSAddOn addon = 12;
+  bool isavailable = 13;
+  bool isactive = 14;
+}
+
+message DetailPOSAddOn {
+  string addOnId = 1;
+  string merchantId = 2;
+  string merchantName = 3;
+  string storeid = 4;
+  string storeName = 5;
+  string addOnName = 6;
+  string addOnDescription = 7;
+  float addOnPrice = 8;
+  bool addOnIsSold = 9;
+  bool addOnIsActive = 10;
+}
+
+message GuestMenuResponse {
+  string status = 1;
+  string session = 2;
+  repeated GuestMenuList results = 3;
+}
+
+// === Items Menu ===
+message GuestMenuByIDRequest {
+  string sessionid = 1;
+  string qrcode = 2;
+  string menuid = 3;
+}
+message GuestMenuByIDList {
+  string menuid = 1;
+  string category = 2;
+  string name = 3;
+  string description = 4;
+  double size = 5;
+  double amount = 6;
+  double sweet = 7;
+  double hot = 8;
+  double price = 9;
+  double stock = 10;
+  string imageurl = 11;
+  bool isavailable = 12;
+}
+message GuestMenuByIDResponse {
+  string status = 1;
+  string session = 2;
+  repeated GuestMenuByIDList results = 3;
+}
+
+// === Items Menu ===
+message GuestViewOrderRequest {
+  string sessionid = 1;
+  string qrcode = 2;
+}
+message GuestViewOrderList1 {
+  string table = 1;
+  string customer = 2;
+  double total = 3;
+  double service = 4;
+  double tax = 5;
+  double grandtotal = 6;
+  string orderstatus = 7;
+}
+message GuestViewOrderList2 {
+  string id = 1;
+  string category = 2;
+  string menu = 3;
+  double price = 4;
+  double amount = 5;
+  double subtotal = 6;
+  repeated string addonname = 7;
+}
+message GuestViewOrderResponse {
+  string status = 1;
+  string session = 2;
+  repeated GuestViewOrderList1 info = 3;
+  repeated GuestViewOrderList2 detail = 4;
+}
+
+// === Add Order ===
+message GuestAddOrderRequest {
+  string sessionid = 1;
+  string qrcode = 2;
+  string type = 3;
+  string menuid = 4;
+  double amount = 5;
+  repeated AddOrderAddon addon = 6;
+}
+
+message AddOrderAddon {
+  string addonid = 1;
+}
+
+message GuestAddOrderList {
+  string menuid = 1;
+  string name = 2;
+  double price = 3;
+  double amount = 4;
+  double subtotal = 5;
+  repeated string addonName = 6;
+}
+message GuestAddOrderResponse {
+  string status = 1;
+  string session = 2;
+  repeated GuestAddOrderList results = 3;
+}
+
+service GuestService {
+  rpc DoRPCMonitor(RPCMonitorRequest) returns (RPCMonitorResponse) {}
+
+  rpc DoGuestLogin(GuestLoginRequest) returns (GuestLoginResponse) {}
+  rpc DoGuestCheckSession(GuestCheckSessionRequest) returns (GuestCheckSessionResponse) {}
+
+  rpc DoGuestCategory(GuestCategoryRequest) returns (GuestCategoryResponse) {}
+  rpc DoGuestMenu(GuestMenuRequest) returns (GuestMenuResponse) {}
+  rpc DoGuestMenuByID(GuestMenuByIDRequest) returns (GuestMenuByIDResponse) {}
+
+  rpc DoGuestViewOrder(GuestViewOrderRequest) returns (GuestViewOrderResponse) {}
+  rpc DoGuestAddOrder(GuestAddOrderRequest) returns (GuestAddOrderResponse) {}
+
+}

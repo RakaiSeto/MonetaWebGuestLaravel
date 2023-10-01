@@ -86,9 +86,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!isNaN(initialVal)) {
                 input.value = initialVal;
+                input.setAttribute("value", initialVal);
+                input.setAttribute("data-change", "initial");
                 input.dispatchEvent(new Event("change"));
             } else {
                 input.value = 0;
+                input.setAttribute("value", 0);
+                input.setAttribute("data-change", "initial");
                 input.dispatchEvent(new Event("change"));
             }
         });
@@ -166,11 +170,12 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("masuk sih");
             e.preventDefault();
 
+            
             var fieldName = this.getAttribute("data-field");
             var type = this.getAttribute("data-type");
             var input = document.querySelector(
                 "input[name='" + fieldName + "']"
-            );
+                );
             if (fieldName.includes("qtyToCart")) {
                 input = document.querySelector(
                     "input[data-target='" + fieldName + "']"
@@ -184,6 +189,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     console.log("MINUS");
                     if (currentVal > parseInt(input.getAttribute("min"))) {
                         input.value = currentVal - 1;
+                        input.setAttribute("data-value-lama", currentVal - 1);
+                        input.setAttribute("data-change", "minus");
                         input.dispatchEvent(new Event("change"));
                     }
                     if (
@@ -196,6 +203,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     console.log("PLUS");
                     if (currentVal < parseInt(input.getAttribute("max"))) {
                         input.value = currentVal + 1;
+                        input.setAttribute("data-change", "plus");
+                        input.setAttribute("data-value-lama", currentVal + 1);
                         input.dispatchEvent(new Event("change"));
                     }
                     if (
@@ -226,9 +235,11 @@ document.addEventListener("DOMContentLoaded", function () {
             var valueCurrent = parseInt(this.value);
             var name = this.getAttribute("name");
             
-            if (this.getAttribute("data-target").includes("qtyToCart")) {
+            if (this.getAttribute("name").includes("qtyToCart")) {
                 name = this.getAttribute("data-target");
             }
+
+            var change = this.getAttribute("data-change");
 
             if (valueCurrent >= minValue) {
                 document
@@ -259,28 +270,58 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (name.includes("qtyOrderHistory")) {
+                var onesPrice = parseInt(
+                    document
+                        .querySelector(".flex-1[name='" + name + "price']")
+                        .getAttribute("data-onesPrice")
+                );
                 var currentPrice =
                     this.value *
-                    parseInt(
-                        document
-                            .querySelector(".flex-1[name='" + name + "price']")
-                            .getAttribute("data-onesPrice")
-                    );
+                    onesPrice;
+                    console.log(currentPrice);
                 document.querySelector(
                     ".flex-1[name='" + name + "price']"
                 ).innerHTML = "Rp. " + currentPrice.toLocaleString("en-US");
+
+                var currentCartTotalText = document.getElementById('cartTotal').innerHTML;
+                currentCartTotalText = currentCartTotalText.replace("Rp. ", "");
+                currentCartTotalText = currentCartTotalText.replaceAll(",", "");
+                
+                var currentCartTotal = parseInt(currentCartTotalText);
+
+                var taxRate = parseInt(document.getElementById('tax-rate').getAttribute("data-tax"));
+                var serviceRate = parseInt(document.getElementById('service-rate').getAttribute("data-service"));
+
+                if (change == "minus") {
+                    currentCartTotal -= onesPrice;
+                } else if (change == "plus") {
+                    currentCartTotal += onesPrice;
+                } else if (change == "initial") {
+                    var selisih = this.getAttribute("data-initialvalue") - this.getAttribute("data-value-lama");
+                    console.log(this.getAttribute("data-value-lama"))
+                    console.log(selisih)
+                    currentCartTotal += (onesPrice * selisih);
+                }
+
+                var theService = Math.round((currentCartTotal * serviceRate) / 100)
+                var theTax = Math.round((currentCartTotal + theService) * taxRate / 100)
+                var grandTotal = Math.round(currentCartTotal + theService + theTax)
+
+                document.getElementById('cartTotal').innerHTML = "Rp. " + currentCartTotal.toLocaleString("en-US");
+                document.getElementById('cartService').innerHTML = "Rp. " + theService.toLocaleString("en-US");
+                document.getElementById('cartTax').innerHTML = "Rp. " + theTax.toLocaleString("en-US");
+                document.getElementById('cartGrandTotal').innerHTML = "Rp. " + grandTotal.toLocaleString("en-US");
             }
 
             if (name.includes("qtyToCart")) {
-                var currentPrice =
-                    this.value *
-                    parseInt(
-                        document
-                            .querySelector(
-                                ".add-order-detail[name='" + name + "']"
-                            )
-                            .getAttribute("data-price")
-                    );
+                var onesPrice = parseInt(
+                    document
+                        .querySelector(
+                            ".add-order-detail[name='" + name + "']"
+                        )
+                        .getAttribute("data-price")
+                );
+                var currentPrice = this.value * onesPrice;
                 document.querySelector(
                     ".add-order-detail[name='" + name + "price']"
                 ).innerHTML = "Rp. " + currentPrice.toLocaleString("en-US");
@@ -373,9 +414,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             var xhr = new XMLHttpRequest();
             
-            var data = "menu_id=" + newObject["menu_id"] + "&qtyToCart=" + newObject["qtyToCart"] + "&addon=" + newObject["addon"]+ "&order_id=" + newObject["order_id"];
+            var data = "menu_id=" + newObject["menu_id"] + "&qtyToCart=" + newObject["qtyToCart"] + "&addon=" + newObject["addon"];
 
-            xhr.open("POST", "/pos/doorder", true);
+            xhr.open("POST", "/doorder", true);
 
             var csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
             var csrfToken = csrfTokenMeta.getAttribute('content');
@@ -388,6 +429,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         location.reload();
                     } else {
                         alert("FAILED TO SEND MENU ORDER " + newObject["menu_id"] + ": " + xhr.status)
+                        location.reload();
                     }
                 }
             };
@@ -396,47 +438,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-
-function deleteOrderCancel(e) {
-    parentId = e.getAttribute('data-parent')
-
-    parentElement = document.getElementById(parentId);
-
-    parentElement.parentNode.removeChild(parentElement);
-}
-
-function deleteOrderConfirm(e) {
-    qtyId = document.getElementById(e).getAttribute('data-qty')
-
-    parentElement = document.getElementById(qtyId);
-    theQty = parentElement.getAttribute('data-initialValue')
-
-    menu_id = qtyId.replace("qtyOrderHistory", "")
-    order_id = document.getElementById("order_id").getAttribute('data-order-id');
-
-    var xhr = new XMLHttpRequest();
-            
-    var data = "menu_id=" + menu_id + "&order_id=" + order_id + "&qty=-" + theQty;
-
-    xhr.open("POST", "/pos/doadjustmentorder", true);
-
-    var csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
-    var csrfToken = csrfTokenMeta.getAttribute('content');
-
-    xhr.setRequestHeader("X-CSRF-TOKEN", csrfToken);
-
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                location.reload();
-            } else {
-                alert("FAILED TO SEND MENU ORDER ADJUSTMENT " + newObject["menu_id"] + ": " + xhr.status)
-            }
-        }
-    };
-
-    xhr.send(data);
-}
 
 function searchMenu() {
     // Declare variables
@@ -467,3 +468,13 @@ function getData(form) {
 
     return Object.fromEntries(formData);
 }
+
+function confirmation(e) {
+    formid = e.getAttribute('data-form-id')
+    
+    if (confirm('Do you want to submit?')) {
+        document.getElementById(formid).submit();
+    } else {
+        return false;
+    }
+ }

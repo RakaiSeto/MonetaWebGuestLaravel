@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Closure;
-use GPBMetadata\Pos;
+use Guest\AddOrderAddon as GuestAddOrderAddon;
+use Guest\GuestAddOrderRequest;
+use Guest\GuestLoginRequest;
+use Guest\GuestMenuRequest;
+use Guest\GuestServiceClient;
+use Guest\GuestViewOrderRequest;
 use Pos\GetCategoryRequest;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Pos\AddCustomerRequest;
-use Pos\GetAllMenuRequest;
-use Pos\GetMenuList;
 use Pos\GetMenuRequest;
 use Pos\PosServiceClient;
-use Pos\LoginRequest;
-use Pos\LogoutRequest;
 use Pos\ToggleMenuData;
 use Pos\ToggleMenuRequest;
 use Pos\UpdateStockData;
@@ -33,15 +33,14 @@ class PosController extends Controller
 {
     function DoLogin(Request $request) {
         Log::debug('DoLogin');
-        $client = new PosServiceClient(config('moneta.pos.address'), [
+        $client = new GuestServiceClient(config('moneta.guest.address'), [
             'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
         ]);
 
-        $grpcRequest = new LoginRequest();
-        $grpcRequest->setUsername($request::createFromGlobals()->get('uname'));
-        $grpcRequest->setPassword($request::createFromGlobals()->get('password'));
+        $grpcRequest = new GuestLoginRequest();
+        $grpcRequest->setQrcode($request::createFromGlobals()->get('order_id'));
 
-        list($grpcResults, $status) = $client->DoLogin($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
+        list($grpcResults, $status) = $client->DoGuestLogin($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
 
         $grpcHitStatus = $status->code;
 
@@ -50,67 +49,95 @@ class PosController extends Controller
             if ($grpcResults->getStatus() === '000') {
 
                 foreach ($grpcResults->getResults() as $dataList) {
-                    $sessStoreID = $dataList->getStoreid();
-                    $sessPosID = $dataList->getPosid();
-                    $sessName = $dataList->getName();
-                    $sessAddress = $dataList->getAddress();
-                    $sessRegion = $dataList->getRegion();
-                    $sessCountry = $dataList->getCountry();
-                    $sessType = $dataList->getType();
-                    $sessCategory = $dataList->getCategory();
+                    $session = $dataList->getSessionid();
+                    $qrcode = $dataList->getQrcode();
+                    $clientid = $dataList->getClientid();
+                    $storeid = $dataList->getStoreid();
+                    $typeid = $dataList->getTypeid();
+                    $orderid = $dataList->getOrderid();
+                    $orderidsimple = $dataList->getOrderidsimple();
+                    $tableno = $dataList->getTableno();
+                    $name = $dataList->getName();
+                    $tagline = $dataList->getTagline();
+                    
                 }
 
-                $request->session()->put('session', $grpcResults->getSession());
-                $request->session()->put('username', $request::createFromGlobals()->get('uname'));
-                $request->session()->put('sessStoreID', $sessStoreID);
-                $request->session()->put('sessPosID', $sessPosID);
-                $request->session()->put('sessStoreName', $sessName);
-                $request->session()->put('sessStoreAddress', $sessAddress);
-                $request->session()->put('sessStoreRegion', $sessRegion);
-                $request->session()->put('sessStoreCountry', $sessCountry);
-                $request->session()->put('sessStoreType', $sessType);
-                $request->session()->put('sessStoreCategory', $sessCategory);
+                $request->session()->put('session', $session);
+                $request->session()->put('qrcode', $qrcode);
+                $request->session()->put('clientid', $clientid);
+                $request->session()->put('storeid', $storeid);
+                $request->session()->put('typeid', $typeid);
+                $request->session()->put('orderid', $orderid);
+                $request->session()->put('orderidsimple', $orderidsimple);
+                $request->session()->put('tableno', $tableno);
+                $request->session()->put('name', $name);
+                $request->session()->put('tagline', $tagline);
 
-                echo "<script> alert('Successfull with status " . $grpcResults->getStatus() . "'); window.location.href='/'; </script>";
-
+                echo "<script> alert('Successfull with status " . $grpcResults->getStatus() . "'); window.location.href='/customer-order/" . $orderid . "'; </script>";
             } else {
                 Log::error($grpcResults->getStatus());
-                echo "<script> alert('Error with status " . $grpcResults->getStatus() . "'); window.location.href='login'; </script>";
+                echo "<script> alert('Error with status " . $grpcResults->getStatus() . "'); window.location.href='error'; </script>";
             }
         } else {
-            echo "<script> alert('Error hit with status " . strval($grpcHitStatus) . "'); window.location.href='login'; </script>";
+            echo "<script> alert('Error hit with status " . strval($grpcHitStatus) . "'); window.location.href='error'; </script>";
+        }
+    }
+    function DoLoginApi(Request $request) {
+        Log::debug('DoLogin');
+        $theid = $request->id;
+        $client = new GuestServiceClient(config('moneta.guest.address'), [
+            'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
+        ]);
+
+        $grpcRequest = new GuestLoginRequest();
+        $grpcRequest->setQrcode($theid);
+
+        list($grpcResults, $status) = $client->DoGuestLogin($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
+
+        $grpcHitStatus = $status->code;
+
+        if ($grpcHitStatus === 0) {
+            Log::debug('berhasil bro hitnya');
+            if ($grpcResults->getStatus() === '000') {
+
+                foreach ($grpcResults->getResults() as $dataList) {
+                    $session = $dataList->getSessionid();
+                    $qrcode = $dataList->getQrcode();
+                    $clientid = $dataList->getClientid();
+                    $storeid = $dataList->getStoreid();
+                    $typeid = $dataList->getTypeid();
+                    $orderid = $dataList->getOrderid();
+                    $orderidsimple = $dataList->getOrderidsimple();
+                    $tableno = $dataList->getTableno();
+                    $name = $dataList->getName();
+                    $tagline = $dataList->getTagline();
+                    
+                }
+
+                $request->session()->put('session', $session);
+                $request->session()->put('qrcode', $qrcode);
+                $request->session()->put('clientid', $clientid);
+                $request->session()->put('storeid', $storeid);
+                $request->session()->put('typeid', $typeid);
+                $request->session()->put('orderid', $orderid);
+                $request->session()->put('orderidsimple', $orderidsimple);
+                $request->session()->put('tableno', $tableno);
+                $request->session()->put('name', $name);
+                $request->session()->put('tagline', $tagline);
+
+                echo "<script> alert('Successfull with status " . $grpcResults->getStatus() . "'); window.location.href='/customer-order/" . $orderid . "'; </script>";
+            } else {
+                Log::error($grpcResults->getStatus());
+                echo "<script> alert('Error with status " . $grpcResults->getStatus() . "'); window.location.href='error'; </script>";
+            }
+        } else {
+            echo "<script> alert('Error hit with status " . strval($grpcHitStatus) . "'); window.location.href='error'; </script>";
         }
     }
     function DoLogout(Request $request) {
         Log::debug('DoLogout');
-        $client = new PosServiceClient(config('moneta.pos.address'), [
-            'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
-        ]);
-
-        Log::debug('Make Request');
-        $grpcRequest = new LogoutRequest();
-        $grpcRequest->setPosid(session()->get('sessPosID'));
-        $grpcRequest->setStoreid(session()->get('sessStoreID'));
-        $grpcRequest->setSession(session()->get('session'));
-
-        list($grpcResults, $status) = $client->DoLogout($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
-        Log::debug('Dapet response');
-        $grpcHitStatus = $status->code;
-
-        if ($grpcHitStatus === 0) {
-            Log::debug('berhasil bro hit logout');
-            if ($grpcResults->getStatus() === '000') {
-                Log::debug('berhasil logout');
-                $request->session()->flush();
-                return redirect('login')->withErrors('success logout');
-            } else {
-                Log::debug('gagal logout '. $grpcResults->getStatus());
-                return redirect()->back()->withErrors('Error with status' . $grpcResults->getStatus());
-            }
-        } else {
-            Log::debug('gagal hit');
-            return redirect()->back()->withErrors('Error hit with status' . $grpcHitStatus);
-        }
+        $request->session()->flush();
+        Auth::logout();
     }
 
     function CustomerOrder(Request $request) {
@@ -175,15 +202,14 @@ class PosController extends Controller
         $category_list=[];
         $menuList=[];
 
-        $client = new PosServiceClient(config('moneta.pos.address'), [
+        $client = new GuestServiceClient(config('moneta.guest.address'), [
             'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
         ]);
 
-        $grpcRequest = new GetAllMenuRequest();
-        $grpcRequest->setPosid(session()->get('sessPosID'));
-        $grpcRequest->setStoreid(session()->get('sessStoreID'));
-        $grpcRequest->setSession(session()->get('session'));
-        list($grpcResults, $status) = $client->DoGetAllMenu($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
+        $grpcRequest = new GuestMenuRequest();
+        $grpcRequest->setSessionid(session()->get('session'));
+        $grpcRequest->setQrcode(session()->get('qrcode'));
+        list($grpcResults, $status) = $client->DoGuestMenu($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
         $grpcHitStatus = $status->code;
         if ($grpcHitStatus === 0) {
             if ($grpcResults->getStatus() === '000') {
@@ -201,17 +227,15 @@ class PosController extends Controller
             return redirect()->back()->withErrors('Error hit all menu with status' . $grpcHitStatus);
         }
 
-        $client = new TrxServiceClient(config('moneta.trx.address'), [
+        $client = new GuestServiceClient(config('moneta.guest.address'), [
             'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
         ]);
 
-        $grpcRequest = new ViewHoldOrderDetailRequest();
-        $grpcRequest->setPosid(session()->get('sessPosID'));
-        $grpcRequest->setStoreid(session()->get('sessStoreID'));
-        $grpcRequest->setSession(session()->get('session'));
-        $grpcRequest->setOrderid($request->id);
+        $grpcRequest = new GuestViewOrderRequest();
+        $grpcRequest->setSessionid(session()->get('session'));
+        $grpcRequest->setQrcode(session()->get('qrcode'));
 
-        list($grpcResults, $status) = $client->DoViewHoldOrderDetail($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
+        list($grpcResults, $status) = $client->DoGuestViewOrder($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
         $grpcHitStatus = $status->code;
         if ($grpcHitStatus === 0) {
             if ($grpcResults->getStatus() === '000') {
@@ -540,23 +564,21 @@ class PosController extends Controller
         $menu_id = $payloadArray[0][1];
         $qty = $payloadArray[1][1];
         $addon = $payloadArray[2][1];
-        $orderid = $payloadArray[3][1];
         $addonArray = explode(',', $addon);
 
-        $client = new TrxServiceClient(config('moneta.pos.address'), [
+        $client = new GuestServiceClient(config('moneta.guest.address'), [
                 'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
         ]);
-        $grpcRequest = new AddOrderRequest();
-        $grpcRequest->setPosid(session()->get('sessPosID'));
-        $grpcRequest->setStoreid(session()->get('sessStoreID'));
-        $grpcRequest->setSession(session()->get('session'));
+        $grpcRequest = new GuestAddOrderRequest();
+        $grpcRequest->setSessionid(session()->get('session'));
+        $grpcRequest->setQrcode(session()->get('qrcode'));
         $grpcRequest->setAmount(floatval($qty));
+        $grpcRequest->setType("");
         $grpcRequest->setMenuid($menu_id);
-        $grpcRequest->setOrderid($orderid);
         $addonList = [];
         if ($addonArray[0] != "") {
             foreach ($addonArray as $theAddon) {
-                $addonRequest = new AddOrderAddon();
+                $addonRequest = new GuestAddOrderAddon();
                 $addonRequest->setAddonid($theAddon);
                 array_push($addonList, $addonRequest);
             }
@@ -564,12 +586,14 @@ class PosController extends Controller
         $grpcRequest->setAddon($addonList);
 
         print_r($grpcRequest->serializeToJsonString());
-        list($grpcResults, $status) = $client->DoAddOrder($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
+        list($grpcResults, $status) = $client->DoGuestAddOrder($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
         $grpcHitStatus = $status->code;
         if ($grpcHitStatus === 0) {
             if ($grpcResults->getStatus() === '000') {
+                $request->session()->put('session', $grpcResults->getSession());
                 http_response_code(200);
             } else {
+                $request->session()->put('session', $grpcResults->getSession());
                 http_response_code(500);
                 error_log($grpcResults->getStatus());
             }

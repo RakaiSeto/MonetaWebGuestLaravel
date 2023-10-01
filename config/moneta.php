@@ -2,6 +2,6 @@
 
 return [
     'guest' => [
-        'address' => '52.76.96.142:50000',    //  RPC Client Guest
+        'address' => '172.31.3.39:50000',    //  RPC Client Guest
     ]
 ];

@@ -17,7 +17,7 @@
 					<div class="d-flex">
 						<label class="form-label">Order ID</label>
 					</div>
-					<input type="text" class="form-control form-control-lg fs-15px" name="order_id" value="" placeholder="Enter your order id">
+					<input type="text" class="form-control form-control-lg fs-15px" name="order_id" value="" placeholder="Enter your order id" required>
 				</div>
 				<button type="submit" class="btn btn-theme btn-lg d-block w-100 fw-500 mb-3">Sign In</button>
 			</form>

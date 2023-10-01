@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['middleware' => ['authpos']], function () {
-	Route::get('/pos/customer-order/{id}', [PosController::class, 'CustomerOrderDetail']);
+	Route::get('/customer-order/{id}', [PosController::class, 'CustomerOrderDetail']);
 
-	Route::post('/pos/doorder', [PosController::class, 'DoOrder']);
+	Route::post('/doorder', [PosController::class, 'DoOrder']);
 
 	Route::get('/logout', [PosController::class, 'DoLogout']);
 
@@ -225,7 +225,13 @@ Route::get('/', function () {
 });
 
 Route::post('dologin', [PosController::class, 'DoLogin']);
+Route::post('dologinapi/{id}', [PosController::class, 'DoLoginApi']);
 
+Route::post('dologout', [PosController::class, 'DoLogout']);
+
+Route::get('/error', function () {
+	return view('/pages/page-error');
+});
 
 Route::fallback(function () {
 	return view('errors/404');
