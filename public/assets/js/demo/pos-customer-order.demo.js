@@ -5,6 +5,8 @@ Author: Sean Ngu
 Website: http://www.seantheme.com/studio/
 */
 
+var currentURL = window.location.href
+
 var handleFilter = function () {
     "use strict";
 
@@ -426,10 +428,10 @@ document.addEventListener("DOMContentLoaded", function () {
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
-                        location.reload();
+                        location.replace(currentURL)
                     } else {
                         alert("FAILED TO SEND MENU ORDER " + newObject["menu_id"] + ": " + xhr.status)
-                        location.reload();
+                        location.replace(currentURL)
                     }
                 }
             };

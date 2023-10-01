@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => ['authpos']], function () {
 	Route::get('/customer-order/{id}', [PosController::class, 'CustomerOrderDetail']);
+	
+	Route::post('/customer-order/{id}', [PosController::class, 'CustomerOrderDetail']);
 
 	Route::post('/doorder', [PosController::class, 'DoOrder']);
 

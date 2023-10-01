@@ -298,14 +298,11 @@
 												</div>
 											@endif
 											<div class="d-flex">
-												<button type="reset" data-field="qtyOrderHistory{{$detail->getId()}}" class="btn btn-secondary btn-sm me-2 btn-cancel"><i class="fa fa-undo"></i></button>
-												<button class="btn btn-secondary btn-number" data-type="minus" data-field="qtyOrderHistory{{$detail->getId()}}"><i class="fa fa-minus"></i></button>
-												<input type="text" class="form-control w-50px fw-bold mx-2 text-center input-number" min="1" max="@foreach ($menus as $menu)
+												<input disabled type="text" class="form-control w-50px fw-bold mx-2 text-center input-number" min="1" max="@foreach ($menus as $menu)
 													@if (str_contains($detail->getId(), $menu->getMenuid()))
 														{{$detail->getAmount() + $menu->getStock()}}
 													@endif
 												@endforeach" id="qtyOrderHistory{{$detail->getId()}}" name="qtyOrderHistory{{$detail->getId()}}" data-initialValue="{{$detail->getAmount()}}" data-change = "" value="{{$detail->getAmount()}}" data-value-lama="{{$detail->getAmount()}}">
-												<button class="btn btn-secondary btn-number" data-type="plus" data-field="qtyOrderHistory{{$detail->getId()}}"><i class="fa fa-plus"></i></button>
 											</div>
 										</div>
 									</div>
