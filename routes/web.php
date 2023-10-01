@@ -225,7 +225,7 @@ Route::get('/', function () {
 });
 
 Route::post('dologin', [PosController::class, 'DoLogin']);
-Route::post('dologinapi/{id}', [PosController::class, 'DoLoginApi']);
+Route::get('dologinapi/{id}', [PosController::class, 'DoLoginApi']);
 
 Route::post('dologout', [PosController::class, 'DoLogout']);
 
