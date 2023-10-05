@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Guest\AddOrderAddon as GuestAddOrderAddon;
 use Guest\GuestAddOrderRequest;
+use Guest\GuestDeleteCartRequest;
 use Guest\GuestLoginRequest;
 use Guest\GuestMenuRequest;
 use Guest\GuestServiceClient;
+use Guest\GuestSubmitAllCartRequest;
 use Guest\GuestViewOrderRequest;
 use Pos\GetCategoryRequest;
 use Illuminate\Http\Request;
@@ -73,13 +75,15 @@ class PosController extends Controller
                 $request->session()->put('name', $name);
                 $request->session()->put('tagline', $tagline);
 
-                echo "<script> alert('Successfull with status " . $grpcResults->getStatus() . "'); window.location.href='/customer-order/" . $orderid . "'; </script>";
+                echo "<script>window.location.href='/customer-order/" . $orderid . "'; </script>";
             } else {
-                Log::error($grpcResults->getStatus());
-                echo "<script> alert('Error with status " . $grpcResults->getStatus() . "'); window.location.href='error'; </script>";
+                Log::error("ERROR LOGIN : ".$grpcResults->getStatus());
+                echo "<script>window.location.href='error'; </script>";
             }
         } else {
-            echo "<script> alert('Error hit with status " . strval($grpcHitStatus) . "'); window.location.href='error'; </script>";
+            
+            Log::error("ERROR HIT LOGIN : ".$grpcHitStatus);
+            echo "<script>window.location.href='error'; </script>";
         }
     }
     function DoLoginApi(Request $request) {
@@ -125,13 +129,15 @@ class PosController extends Controller
                 $request->session()->put('name', $name);
                 $request->session()->put('tagline', $tagline);
 
-                echo "<script> alert('Successfull with status " . $grpcResults->getStatus() . "'); window.location.href='/customer-order/" . $orderid . "'; </script>";
+                echo "<script>window.location.href='/customer-order/" . $orderid . "'; </script>";
             } else {
-                Log::error($grpcResults->getStatus());
-                echo "<script> alert('Error with status " . $grpcResults->getStatus() . "'); window.location.href='error'; </script>";
+                Log::error("ERROR LOGIN : ".$grpcResults->getStatus());
+                echo "<script>window.location.href='error'; </script>";
             }
         } else {
-            echo "<script> alert('Error hit with status " . strval($grpcHitStatus) . "'); window.location.href='error'; </script>";
+            
+            Log::error("ERROR HIT LOGIN : ".$grpcHitStatus);
+            echo "<script>window.location.href='error'; </script>";
         }
     }
     function DoLogout(Request $request) {
@@ -201,6 +207,8 @@ class PosController extends Controller
     function CustomerOrderDetail(Request $request) {
         $category_list=[];
         $menuList=[];
+        $orderHistory = [];
+        $orderInCart = [];
 
         $client = new GuestServiceClient(config('moneta.guest.address'), [
             'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
@@ -241,7 +249,19 @@ class PosController extends Controller
             if ($grpcResults->getStatus() === '000') {
                 $request->session()->put('session', $grpcResults->getSession());
                 $category_list = array_unique($category_list);
-                return view('pages.pos-customer-order')->with('result', $grpcResults)->with('categories', $category_list)->with('menus', $menuList);
+                foreach ($grpcResults->getDetail() as $value) {
+                    if ($value->getIscart() == true) {
+                        array_push($orderInCart, $value);
+                        if ($value->getAmount() > 0) {
+                            array_push($orderHistory, $value);
+                        }
+                    } else {
+                        array_push($orderHistory, $value);
+                    }
+                }
+                
+
+                return view('pages.pos-customer-order')->with('result', $grpcResults)->with('categories', $category_list)->with('menus', $menuList)->with('orderHistory', $orderHistory)->with('orderCart', $orderInCart);
             } else {
                 Log::debug('gagal get hold order detail '. $grpcResults->getStatus());
                 return redirect()->back()->withErrors('Error hold order detail with status' . $grpcResults->getStatus());
@@ -261,6 +281,8 @@ class PosController extends Controller
         $categoryId = [];
         $categoryName = [];
         $menuList = [];
+        $orderHistory = [];
+        $orderCart = [];
 
         $grpcRequest = new GetCategoryRequest();
         $grpcRequest->setPosid(session()->get('sessPosID'));
@@ -645,6 +667,78 @@ class PosController extends Controller
         } else {
             http_response_code(500);
             error_log($grpcHitStatus);
+        }
+    }
+
+    function DoDeleteCart(Request $request) {
+        error_log($request->getContent());
+        error_log("MASUK KE DO DELETE CART");
+
+        if(strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') != 0){
+            error_log("ERROR REQUEST METHOD");
+            //If it isn't, send back a 405 Method Not Allowed header.
+            header($_SERVER["SERVER_PROTOCOL"]." 405 Method Not Allowed", true, 405);
+            exit;
+        }
+
+        $newArray = explode("&", $request->getContent());
+        $payloadArray = [];
+        foreach ($newArray as $theString) {
+            array_push($payloadArray, explode("=", $theString));
+        }
+
+        $client = new GuestServiceClient(config('moneta.guest.address'), [
+            'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
+        ]);
+
+        $grpcRequest = new GuestDeleteCartRequest();
+        $grpcRequest->setSessionid(session()->get('session'));
+        $grpcRequest->setQrcode(session()->get('qrcode'));
+        $grpcRequest->setOrderdetailid($payloadArray[0][1]);
+        $grpcRequest->setAmount($payloadArray[1][1]);
+
+        list($grpcResults, $status) = $client->DoGuestDeleteCart($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
+        $grpcHitStatus = $status->code;
+        if ($grpcHitStatus === 0) {
+            if ($grpcResults->getStatus() === '000') {
+                $request->session()->put('session', $grpcResults->getSession());
+                error_log("berhasil");
+                http_response_code(200);
+            } else {
+                $request->session()->put('session', $grpcResults->getSession());
+                http_response_code(500);
+                error_log($grpcResults->getStatus());
+            }
+        } else {
+            http_response_code(500);
+            error_log($grpcHitStatus);
+        }
+    }
+
+    function DoSubmitCart(Request $request) {
+        $client = new GuestServiceClient(config('moneta.guest.address'), [
+            'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
+        ]);
+
+        $grpcRequest = new GuestSubmitAllCartRequest();
+        $grpcRequest->setSessionid(session()->get('session'));
+        $grpcRequest->setQrcode(session()->get('qrcode'));
+
+        list($grpcResults, $status) = $client->DoGuestSubmitAllCart($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
+        $grpcHitStatus = $status->code;
+        if ($grpcHitStatus === 0) {
+            if ($grpcResults->getStatus() === '000') {
+                $request->session()->put('session', $grpcResults->getSession());
+                return redirect()->back();
+            } else {
+                $request->session()->put('session', $grpcResults->getSession());
+                error_log($grpcResults->getStatus());
+                return redirect()->back();
+            }
+        } else {
+            http_response_code(500);
+            error_log($grpcHitStatus);
+            return redirect()->back();
         }
     }
 }

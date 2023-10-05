@@ -7,6 +7,37 @@ Website: http://www.seantheme.com/studio/
 
 var currentURL = window.location.href
 
+var addCartPrice = function () {
+    const elements = Array.from(document.getElementsByClassName('price-order-cart'));
+    
+    var currentCartTotalText = document.getElementById('cartTotal').innerHTML;
+    currentCartTotalText = currentCartTotalText.replace("Rp. ", "");
+    currentCartTotalText = currentCartTotalText.replaceAll(",", "");
+    
+    var currentCartTotal = parseInt(currentCartTotalText);
+
+    var taxRate = parseInt(document.getElementById('tax-rate').getAttribute("data-tax"));
+    var serviceRate = parseInt(document.getElementById('service-rate').getAttribute("data-service"));
+    
+    for (let i = 0; i < elements.length; i++) {
+        var currentid = elements[i].getAttribute("data-id");
+
+        var amountid = 'qtyOrderCart' + currentid
+        var currentAmount = document.getElementById(amountid).getAttribute('data-initialValue');
+
+        currentCartTotal += currentAmount * elements[i].getAttribute('data-onesPrice')
+    }
+
+    var theService = Math.round((currentCartTotal * serviceRate) / 100)
+    var theTax = Math.round((currentCartTotal + theService) * taxRate / 100)
+    var grandTotal = Math.round(currentCartTotal + theService + theTax)
+
+    document.getElementById('cartTotal').innerHTML = "Rp. " + currentCartTotal.toLocaleString("en-US");
+    document.getElementById('cartService').innerHTML = "Rp. " + theService.toLocaleString("en-US");
+    document.getElementById('cartTax').innerHTML = "Rp. " + theTax.toLocaleString("en-US");
+    document.getElementById('cartGrandTotal').innerHTML = "Rp. " + grandTotal.toLocaleString("en-US");
+}
+
 var handleFilter = function () {
     "use strict";
 
@@ -52,7 +83,9 @@ var handleFilter = function () {
 };
 
 document.addEventListener("DOMContentLoaded", function () {
+    console.log(window.location.href)
     handleFilter();
+    addCartPrice();
 
     var checkAddon = document.querySelectorAll(".addon-checkbox");
     checkAddon.forEach(function (item) {
@@ -62,10 +95,10 @@ document.addEventListener("DOMContentLoaded", function () {
             var confirmation = document.getElementById("check_" + checkboxName);
 
             if (confirmation.value == "on") {
-                console.log("CONFIRMATION NOW OFF");
+                // console.log("CONFIRMATION NOW OFF");
                 confirmation.value = "off";
             } else {
-                console.log("CONFIRMATION NOW ON");
+                // console.log("CONFIRMATION NOW ON");
                 confirmation.value = "on";
             }
         });
@@ -76,21 +109,26 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", function (e) {
             e.preventDefault();
 
+            // var submitButton = 
             var fieldName = this.getAttribute("data-field");
+            var theId = fieldName.replace('qtyOrderCart', '')
             var input = document.querySelector(
                 "input[name='" + fieldName + "']"
             );
+            this.disabled = true;
+            document.getElementById('updateCart'+theId).disabled = true;
             var initialVal = parseInt(input.getAttribute("data-initialValue"));
 
-            console.log(
-                "initialVal: " + input.getAttribute("data-initialValue")
-            );
+            // console.log(
+            //     "initialVal: " + input.getAttribute("data-initialValue")
+            // );
 
             if (!isNaN(initialVal)) {
                 input.value = initialVal;
                 input.setAttribute("value", initialVal);
                 input.setAttribute("data-change", "initial");
                 input.dispatchEvent(new Event("change"));
+                
             } else {
                 input.value = 0;
                 input.setAttribute("value", 0);
@@ -103,15 +141,15 @@ document.addEventListener("DOMContentLoaded", function () {
     var addonCheckbox = document.querySelectorAll(".addon-checkbox");
     addonCheckbox.forEach(function (input) {
         input.addEventListener("click", function (e) {
-            console.log(
-                this.getAttribute("name") +
-                    " is clicked with value " +
-                    this.checked
-            );
+            // console.log(
+            //     this.getAttribute("name") +
+            //         " is clicked with value " +
+            //         this.checked
+            // );
 
             if (this.checked) {
                 var name = this.getAttribute("data-menu");
-                console.log(name);
+                // console.log(name);
                 var oneprice = parseInt(
                     document
                         .querySelector(
@@ -119,10 +157,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         )
                         .getAttribute("data-price")
                 );
-                console.log(oneprice);
+                // console.log(oneprice);
                 var currentPrice =
                     oneprice + parseInt(this.getAttribute("data-price"));
-                console.log(currentPrice);
+                // console.log(currentPrice);
                 document
                     .querySelector(
                         ".add-order-detail[name='qtyToCart" + name + "']"
@@ -136,7 +174,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     .dispatchEvent(new Event("change"));
             } else {
                 var name = this.getAttribute("data-menu");
-                console.log(name);
+                // console.log(name);
                 var oneprice = parseInt(
                     document
                         .querySelector(
@@ -144,10 +182,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         )
                         .getAttribute("data-price")
                 );
-                console.log(oneprice);
+                // console.log(oneprice);
                 var currentPrice =
                     oneprice - parseInt(this.getAttribute("data-price"));
-                console.log(currentPrice);
+                // console.log(currentPrice);
                 document
                     .querySelector(
                         ".add-order-detail[name='qtyToCart" + name + "']"
@@ -169,11 +207,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // Loop through each button and add a click event listener
     numberButtons.forEach(function (button) {
         button.addEventListener("click", function (e) {
-            console.log("masuk sih");
+            // console.log("masuk sih");
             e.preventDefault();
-
             
             var fieldName = this.getAttribute("data-field");
+            var theId = fieldName.replace('qtyOrderCart', '')
             var type = this.getAttribute("data-type");
             var input = document.querySelector(
                 "input[name='" + fieldName + "']"
@@ -186,11 +224,21 @@ document.addEventListener("DOMContentLoaded", function () {
             var currentVal = parseInt(input.value);
 
             if (!isNaN(currentVal)) {
-                console.log("TIDAK NAN GAIS INPUTNYA");
+                // console.log("TIDAK NAN GAIS INPUTNYA");
                 if (type === "minus") {
-                    console.log("MINUS");
+                    // console.log("MINUS");
                     if (currentVal > parseInt(input.getAttribute("min"))) {
                         input.value = currentVal - 1;
+                        document.getElementById('buttonPlus' + fieldName).disabled = false
+                        if (fieldName.includes("qtyOrderCart")) {
+                            if (input.getAttribute('data-initialValue') != input.value) {
+                                document.getElementById('updateCart'+theId).disabled = false;
+                                document.getElementById('resetCart'+theId).disabled = false;
+                            } else {
+                                document.getElementById('updateCart'+theId).disabled = true;
+                                document.getElementById('resetCart'+theId).disabled = true;
+                            }
+                        }
                         input.setAttribute("data-value-lama", currentVal - 1);
                         input.setAttribute("data-change", "minus");
                         input.dispatchEvent(new Event("change"));
@@ -202,15 +250,26 @@ document.addEventListener("DOMContentLoaded", function () {
                         this.disabled = true;
                     }
                 } else if (type === "plus") {
-                    console.log("PLUS");
+                    // console.log("PLUS");
                     if (currentVal < parseInt(input.getAttribute("max"))) {
+                        document.getElementById('buttonMinus' + fieldName).disabled = false
                         input.value = currentVal + 1;
+                        if (fieldName.includes("qtyOrderCart")) {
+                            if (input.getAttribute('data-initialValue') != input.value) {
+                                document.getElementById('updateCart'+theId).disabled = false;
+                                document.getElementById('resetCart'+theId).disabled = false;
+                            } else {
+                                document.getElementById('updateCart'+theId).disabled = true;
+                                document.getElementById('resetCart'+theId).disabled = true;
+                            }
+                        }
+                        
                         input.setAttribute("data-change", "plus");
                         input.setAttribute("data-value-lama", currentVal + 1);
                         input.dispatchEvent(new Event("change"));
                     }
                     if (
-                        parseInt(input.value) ===
+                        parseInt(input.value)  ===
                         parseInt(input.getAttribute("max"))
                     ) {
                         this.disabled = true;
@@ -232,6 +291,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         input.addEventListener("change", function () {
+            console.log("masuk change")
             var minValue = parseInt(this.getAttribute("min"));
             var maxValue = parseInt(this.getAttribute("max"));
             var valueCurrent = parseInt(this.value);
@@ -250,9 +310,9 @@ document.addEventListener("DOMContentLoaded", function () {
                             name +
                             "']"
                     )
-                    .removeAttribute("disabled");
+                    .disabled = false;
             } else {
-                alert("Sorry, the minimum value of 1 was reached");
+                // alert("Sorry, the minimum value of 1 was reached");
                 this.value = 1;
             }
 
@@ -263,15 +323,15 @@ document.addEventListener("DOMContentLoaded", function () {
                             name +
                             "']"
                     )
-                    .removeAttribute("disabled");
+                    .disabled = false;
             } else {
-                alert(
-                    "Sorry, the maximum value of " + maxValue + " was reached"
-                );
+                // alert(
+                //     "Sorry, the maximum value of " + maxValue + " was reached"
+                // );
                 this.value = maxValue;
             }
 
-            if (name.includes("qtyOrderHistory")) {
+            if (name.includes("qtyOrderHistory") || name.includes("qtyOrderCart")) {
                 var onesPrice = parseInt(
                     document
                         .querySelector(".flex-1[name='" + name + "price']")
@@ -280,7 +340,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 var currentPrice =
                     this.value *
                     onesPrice;
-                    console.log(currentPrice);
+                    // console.log(currentPrice);
                 document.querySelector(
                     ".flex-1[name='" + name + "price']"
                 ).innerHTML = "Rp. " + currentPrice.toLocaleString("en-US");
@@ -300,8 +360,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     currentCartTotal += onesPrice;
                 } else if (change == "initial") {
                     var selisih = this.getAttribute("data-initialvalue") - this.getAttribute("data-value-lama");
-                    console.log(this.getAttribute("data-value-lama"))
-                    console.log(selisih)
+                    // console.log(this.getAttribute("data-value-lama"))
+                    // console.log(selisih)
                     currentCartTotal += (onesPrice * selisih);
                 }
 
@@ -324,6 +384,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         .getAttribute("data-price")
                 );
                 var currentPrice = this.value * onesPrice;
+                console.log("ngubah harga")
                 document.querySelector(
                     ".add-order-detail[name='" + name + "price']"
                 ).innerHTML = "Rp. " + currentPrice.toLocaleString("en-US");
@@ -335,12 +396,12 @@ document.addEventListener("DOMContentLoaded", function () {
     var deleteOrder = document.querySelectorAll(".btn-trash");
     deleteOrder.forEach(function (button) {
         button.addEventListener("click", function (e) {
-            console.log("BUTTON DIPENCET");
+            // console.log("BUTTON DIPENCET");
 
             elementId = button.id
 
-            parentId = elementId.replace('cancel', 'parent');
-            confirmId= elementId.replace('cancel', 'qtyOrderHistory');
+            parentId = elementId.replace('cancelCart', 'parentCart');
+            confirmId= elementId.replace('cancelCart', 'qtyOrderCart');
             
             //     var Child1 = document.createElement(`<div class="pos-order-confirmation text-center d-flex flex-column justify-content-center">
             //     <div class="mb-1">
@@ -366,6 +427,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    
+
     document.addEventListener("click", function (e) {
         e = e || window.event;
         var target = e.target || e.srcElement,
@@ -385,19 +448,19 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("submit", function (e) {
             e.preventDefault();
             newObject = getData(e.target);
-            console.log(newObject);
-            // console.log('INI QTY: ' + newObject['qtyToCartMNURUMIPE23017UJ2F']);
+            // console.log(newObject);
+            // // console.log('INI QTY: ' + newObject['qtyToCartMNURUMIPE23017UJ2F']);
             addonName =Object.keys(newObject).filter(key => newObject[key] === "true")
-            console.log(addonName);
+            // console.log(addonName);
             
             for (let index = 0; index < addonName.length; index++) {
                 if (addonName[index] in newObject === true) {
-                    console.log("DELETING KEY : ", addonName[index])
+                    // console.log("DELETING KEY : ", addonName[index])
                     deletedName = addonName[index];
                     delete newObject[deletedName];
                 }
             }
-            console.log(newObject);
+            // console.log(newObject);
 
             var addonName2 = []
             var addonName3 = []
@@ -409,10 +472,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 split = addonName2[index].split("|")
                 addonName3.push(split[1])
             }
-            console.log(addonName3);
+            // console.log(addonName3);
 
             newObject['addon'] = addonName3
-            console.log(newObject)
+            // console.log(newObject)
 
             var xhr = new XMLHttpRequest();
             
@@ -430,8 +493,75 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (xhr.status === 200) {
                         location.replace(currentURL)
                     } else {
-                        alert("FAILED TO SEND MENU ORDER " + newObject["menu_id"] + ": " + xhr.status)
+                        // alert("FAILED TO SEND MENU ORDER " + newObject["menu_id"] + ": " + xhr.status)
                         location.replace(currentURL)
+                    }
+                }
+            };
+
+            xhr.send(data);
+        });
+    });
+
+    var updateCart = document.querySelectorAll(".formUpdateCart");
+    updateCart.forEach(function (button) {
+        button.addEventListener("submit", function (e) {
+            theid = button.id.replace('formUpdateCart', '');
+
+            e.preventDefault();
+            newObject = getData(e.target);
+            console.log(newObject);
+            // // console.log('INI QTY: ' + newObject['qtyToCartMNURUMIPE23017UJ2F']);
+
+            var xhr = new XMLHttpRequest();
+
+            currentURL = window.location.href;
+            currentURLToChange = window.location.href;
+            currentURLToChange = currentURLToChange.replaceAll("#", "")
+            currentURLToChange = currentURLToChange.replaceAll("://", "")
+            currentURLArr = currentURLToChange.split("/")
+            orderid = currentURLArr[2]
+            console.log(currentURLArr)
+
+            newObject["menu_id"] = newObject["menu_id"].replaceAll(orderid, "")
+            theMenuArr = newObject["menu_id"].split("|")
+
+            theAddon = ""
+            if (theMenuArr.length > 1) {
+                for (let index = 1; index < array.length; index++) {
+                    theAddon += array[index];
+                    theAddon += "&"
+                }
+            }
+            
+            theAddon = theAddon.slice(0, -1);
+
+            currentQty = newObject["qtyOrderCart"+theid]
+            console.log('qtyOrderCart'+theid)
+            qtyid = 'qtyOrderCart'+theid
+            initialValue = document.getElementById(qtyid).getAttribute('data-initialvalue')
+            selisih = currentQty - initialValue
+
+            var data = "menu_id=" + theMenuArr[0] + "&qtyToCart=" + selisih + "&addon=" + theAddon;
+            console.log(data)
+
+            xhr.open("POST", "/doorder", true);
+
+            var csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+            var csrfToken = csrfTokenMeta.getAttribute('content');
+
+            xhr.setRequestHeader("X-CSRF-TOKEN", csrfToken);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) 
+                    {
+                        console.log("masuk bisa");
+                        location.reload()
+                    } else {
+                        console.log("masuk gabisa");
+                        // alert("FAILED TO SEND MENU ORDER " + newObject["menu_id"] + ": " + xhr.status)
+                        location.reload()
                     }
                 }
             };
@@ -465,18 +595,73 @@ function getData(form) {
     var formData = new FormData(form);
 
     for (var pair of formData.entries()) {
-        console.log(pair[0] + ": " + pair[1]);
+        // console.log(pair[0] + ": " + pair[1]);
     }
 
     return Object.fromEntries(formData);
 }
 
 function confirmation(e) {
-    formid = e.getAttribute('data-form-id')
+    // formid = e.getAttribute('data-form-id')
     
-    if (confirm('Do you want to submit?')) {
+    // if (confirm('Do you want to submit?')) {
         document.getElementById(formid).submit();
-    } else {
-        return false;
-    }
+    // } else {
+    //     return false;
+    // }
+ }
+
+ function deleteOrderConfirm(e) {
+    console.log(e)
+    theId = e.replace("id", "")
+
+    parentElement = document.getElementById(theId);
+    theQty = parentElement.getAttribute('data-initialValue')
+
+    menu_id = theId.replace("qtyOrderCart", "")
+    order_id = menu_id;
+
+    var xhr = new XMLHttpRequest();
+
+    var data = "order_id=" + order_id + "&qtyToCart=" + theQty;
+
+    xhr.open("POST", "/dodeletecart", true);
+
+    var csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+    var csrfToken = csrfTokenMeta.getAttribute('content');
+
+    xhr.setRequestHeader("X-CSRF-TOKEN", csrfToken);
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                console.log("bisa")
+                location.reload();
+            } else {
+                console.log("error")
+                location.reload();
+            }
+        }
+    };
+
+    xhr.send(data);
+ }
+
+ function confirmSubmitCart(e) {
+    location.replace('/dosubmitcart')
+}
+
+ function confirmUpdateCart(e) {
+    // formid = e
+    // console.log(e)
+    
+    // if (confirm('Do you want to update the cart?')) {
+        document.getElementById(formid).submit();
+    // } else {
+    //     return false;
+    // }
+ }
+
+ function closeModal(e) {
+    document.getElementById(e).classList.remove('show');
  }

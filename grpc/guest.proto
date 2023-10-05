@@ -155,6 +155,8 @@ message GuestViewOrderList2 {
   double amount = 5;
   double subtotal = 6;
   repeated string addonname = 7;
+  bool iscart = 8;
+  double cartamount = 9;
 }
 message GuestViewOrderResponse {
   string status = 1;
@@ -191,6 +193,40 @@ message GuestAddOrderResponse {
   repeated GuestAddOrderList results = 3;
 }
 
+message GuestDeleteCartRequest {
+  string sessionid = 1;
+  string qrcode = 2;
+  string orderdetailid = 3;
+  double amount = 4;
+}
+
+message GuestDeleteCartList {
+  string orderdetailid = 1;
+  string orderid = 2;
+  double amount = 3;
+}
+
+message GuestDeleteCartResponse {
+  string status = 1;
+  string session = 2;
+  repeated GuestDeleteCartList results = 3;
+}
+
+message GuestSubmitAllCartRequest {
+  string sessionid = 1;
+  string qrcode = 2;
+}
+
+message GuestSubmitAllCartList {
+  string orderid = 1;
+}
+
+message GuestSubmitAllCartResponse {
+  string status = 1;
+  string session = 2;
+  repeated GuestSubmitAllCartList results = 3;
+}
+
 service GuestService {
   rpc DoRPCMonitor(RPCMonitorRequest) returns (RPCMonitorResponse) {}
 
@@ -203,5 +239,7 @@ service GuestService {
 
   rpc DoGuestViewOrder(GuestViewOrderRequest) returns (GuestViewOrderResponse) {}
   rpc DoGuestAddOrder(GuestAddOrderRequest) returns (GuestAddOrderResponse) {}
+  rpc DoGuestDeleteCart(GuestDeleteCartRequest) returns (GuestDeleteCartResponse) {}
+  rpc DoGuestSubmitAllCart(GuestSubmitAllCartRequest) returns (GuestSubmitAllCartResponse) {}
 
 }

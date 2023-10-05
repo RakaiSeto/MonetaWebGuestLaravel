@@ -41,6 +41,14 @@ class GuestViewOrderList2 extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>repeated string addonname = 7;</code>
      */
     private $addonname;
+    /**
+     * Generated from protobuf field <code>bool iscart = 8;</code>
+     */
+    protected $iscart = false;
+    /**
+     * Generated from protobuf field <code>double cartamount = 9;</code>
+     */
+    protected $cartamount = 0.0;
 
     /**
      * Constructor.
@@ -55,6 +63,8 @@ class GuestViewOrderList2 extends \Google\Protobuf\Internal\Message
      *     @type float $amount
      *     @type float $subtotal
      *     @type array<string>|\Google\Protobuf\Internal\RepeatedField $addonname
+     *     @type bool $iscart
+     *     @type float $cartamount
      * }
      */
     public function __construct($data = NULL) {
@@ -212,6 +222,50 @@ class GuestViewOrderList2 extends \Google\Protobuf\Internal\Message
     {
         $arr = GPBUtil::checkRepeatedField($var, \Google\Protobuf\Internal\GPBType::STRING);
         $this->addonname = $arr;
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>bool iscart = 8;</code>
+     * @return bool
+     */
+    public function getIscart()
+    {
+        return $this->iscart;
+    }
+
+    /**
+     * Generated from protobuf field <code>bool iscart = 8;</code>
+     * @param bool $var
+     * @return $this
+     */
+    public function setIscart($var)
+    {
+        GPBUtil::checkBool($var);
+        $this->iscart = $var;
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>double cartamount = 9;</code>
+     * @return float
+     */
+    public function getCartamount()
+    {
+        return $this->cartamount;
+    }
+
+    /**
+     * Generated from protobuf field <code>double cartamount = 9;</code>
+     * @param float $var
+     * @return $this
+     */
+    public function setCartamount($var)
+    {
+        GPBUtil::checkDouble($var);
+        $this->cartamount = $var;
 
         return $this;
     }

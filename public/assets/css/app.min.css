@@ -7235,6 +7235,10 @@ textarea.form-control-lg {
   width: auto;
   margin: var(--bs-modal-margin);
   pointer-events: none;
+  z-index: 1062;
+  width: 100%;
+  height: 100%;
+  outline: 0;
 }
 .modal.fade .modal-dialog {
   transition: transform 0.3s ease-out;

@@ -259,7 +259,7 @@
 					
 						<!-- BEGIN #orderHistoryTab -->
 						<div class="tab-pane fade h-100 show active" id="orderHistoryTab">
-							@if (count($result->getDetail()) == 0)
+							@if (count($orderHistory) == 0)
 							<div class="h-100 d-flex align-items-center justify-content-center text-center p-20">
 								<div>
 									<div class="mb-3 mt-n5">
@@ -272,7 +272,7 @@
 								</div>
 							</div>
 							@else	
-								@foreach ($result->getDetail() as $detail)
+								@foreach ($orderHistory as $detail)
 								<div class="pos-order">
 									<div class="pos-order-product" id="parent{{$detail->getId()}}">
 										<div class="img" style="background-image: url(/assets/img/pos/product-1.jpg)"></div>
@@ -309,7 +309,61 @@
 								</div>
 								@endforeach
 							@endif
-							
+							@if (count($orderCart) > 0)
+							<hr>
+							<h5 class="text-center">Current Cart</h5>
+							@foreach ($orderCart as $detail)
+								<div class="pos-order">
+									<div class="pos-order-product" id="parentCart{{$detail->getId()}}">
+										<div class="img" style="background-image: url(/assets/img/pos/product-1.jpg)"></div>
+										<div class="flex-1">
+											<div class="d-flex">
+												@if (count($detail->getAddonname()) == 0)
+												<div class="h6 mb-1">{{$detail->getMenu()}}</div>
+												@else
+												<div class="h6 mb-1">{{$detail->getMenu()}} (Addon)</div>
+												@endif
+												<div class="flex-1 text-end price-order-cart" data-onesPrice="{{$detail->getPrice()}}" name="qtyOrderCart{{$detail->getId()}}price" data-id="{{$detail->getId()}}">Rp. {{number_format($detail->getCartamount() * $detail->getPrice())}}</div>
+											</div>
+											<div class="small">Rp. {{number_format($detail->getPrice())}}</div>
+											@if (count($detail->getAddonname()) == 0)
+												<div class="small mb-2">-</div>
+											@else
+												<div class="small mb-2">
+													<p>
+													@foreach ($detail->getAddonname() as $addon)
+														{{$addon}}, 
+													@endforeach
+													</p>
+												</div>
+											@endif
+											<form action="#" class="formUpdateCart" id="formUpdateCart{{$detail->getId()}}" method="POST">
+											@csrf
+												<div class="d-flex">
+													<input type="hidden" name="menu_id" value="{{$detail->getId()}}">
+													<button type="reset" disabled id="resetCart{{$detail->getId()}}" data-field="qtyOrderCart{{$detail->getId()}}" class="btn btn-secondary btn-sm me-2 btn-cancel"><i class="fa fa-undo"></i></button>
+													<button class="btn btn-secondary btn-number" id="buttonMinusqtyOrderCart{{$detail->getId()}}" data-type="minus" data-field="qtyOrderCart{{$detail->getId()}}"><i class="fa fa-minus"></i></button>
+													<input type="text" class="form-control w-50px fw-bold mx-2 text-center input-number qty-order-cart" min="1" max="@foreach ($menus as $menu)
+														@if (str_contains($detail->getId(), $menu->getMenuid()))
+															{{$menu->getStock()}}
+														@endif
+													@endforeach" id="qtyOrderCart{{$detail->getId()}}" name="qtyOrderCart{{$detail->getId()}}" data-initialValue="{{$detail->getCartamount()}}" data-change = "" value="{{$detail->getCartamount()}}" data-value-lama="{{$detail->getCartamount()}}">
+													<button class="btn btn-secondary btn-number" data-type="plus" data-field="qtyOrderCart{{$detail->getId()}}" id="buttonPlusqtyOrderCart{{$detail->getId()}}"><i class="fa fa-plus"></i></button>
+													<a href="#" id="cancelCart{{$detail->getId()}}" class="btn btn-default btn-sm btn-trash ms-2" type="button"><i class="fa fa-trash"></i></a>
+												</div>
+												<div class="d-flex mt-2">
+													<button disabled id="updateCart{{$detail->getId()}}" onclick="confirmUpdateCart('formUpdateCart{{$menu->getMenuid()}}')" class="btn btn-theme flex-fill d-flex align-items-center justify-content-center me-1">
+														<span>
+															<span class="small fw-semibold">Update Cart</span>
+														</span>
+													</button>
+												</div>
+											</form>
+										</div>
+									</div>
+								</div>
+								@endforeach
+							@endif
 						</div>
 						<!-- END #orderHistoryTab -->
 					</div>
@@ -348,6 +402,21 @@
 							<div>Total</div>
 							<div class="flex-1 text-end h4 mb-0" id="cartGrandTotal">Rp. {{number_format($result->getInfo()[0]->getGrandtotal())}}</div>
 						</div>
+						@if (count($orderCart) > 0)
+						<button data-bs-toggle="modal" data-bs-target="#confirm-submit" class="btn btn-theme w-100 flex-fill d-flex align-items-center justify-content-center">
+							<span>
+								<i class="fa fa-cash-register fa-lg my-10px d-block"></i>
+								<span class="small fw-semibold">Submit Cart</span>
+							</span>
+						</button>
+						@else
+						<button disabled data-bs-toggle="modal" data-bs-target="#confirm-submit" class="btn btn-theme w-100 flex-fill d-flex align-items-center justify-content-center">
+							<span>
+								<i class="fa fa-cash-register fa-lg my-10px d-block"></i>
+								<span class="small fw-semibold">Submit Cart</span>
+							</span>
+						</button>
+						@endif
 					</div>
 					<!-- END pos-sidebar-footer -->
 				</div>
@@ -371,7 +440,7 @@
 	<!-- BEGIN #modalPosItem -->
 	@foreach ($menus as $menukey => $menu)
 		@if ($menu->getIsavailable() === true)
-		<div class="modal modal-pos fade" id="modalPosItem{{$menu->getMenuid()}}">
+		<div class="modal modal-pos fade " id="modalPosItem{{$menu->getMenuid()}}">
 			<div class="modal-dialog modal-lg">
 				<div class="modal-content border-0">
 					<a href="#" data-bs-dismiss="modal" class="btn-close position-absolute top-0 end-0 m-4"></a>
@@ -391,9 +460,9 @@
 							<div class="d-flex mb-3">
 								<input type="hidden" name="menu_id" value="{{$menu->getMenuid()}}">
 
-								<button class="btn btn-secondary btn-number" data-type="minus" data-field="qtyToCart{{$menu->getMenuid()}}"><i class="fa fa-minus"></i></button>
+								<button class="btn btn-secondary btn-number" data-type="minus" data-field="qtyToCart{{$menu->getMenuid()}}" id="buttonMinusqtyToCart{{$menu->getMenuid()}}"><i class="fa fa-minus"></i></button>
 								<input type="text" class="form-control w-50px fw-bold mx-2 text-center input-number" min="1" max="{{$menu->getStock()}}" data-target="qtyToCart{{$menu->getMenuid()}}" name="qtyToCart" value="1">
-								<button class="btn btn-secondary btn-number" data-type="plus" data-field="qtyToCart{{$menu->getMenuid()}}"><i class="fa fa-plus"></i></button>
+								<button class="btn btn-secondary btn-number" data-type="plus" data-field="qtyToCart{{$menu->getMenuid()}}" id="buttonPlusqtyToCart{{$menu->getMenuid()}}"><i class="fa fa-plus" ></i></button>
 							</div>
 
 							<div class="fs-3 fw-bold mb-3 add-order-detail" name="qtyToCart{{$menu->getMenuid()}}price" id="">Rp. {{number_format($menu->getPrice())}}</div>
@@ -434,7 +503,45 @@
 				</div>
 			</div>
 		</div>
+		{{-- <div class="modal modal-cover fade" id="exampleModalCenter{{$menu->getMenuid()}}" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+			<div class="modal-dialog modal-lg" role="document">
+			  <div class="modal-content">
+				<div class="modal-header">
+				  <h5 class="modal-title" id="exampleModalLongTitle">Are you sure want to submit this menu to cart?</h5>
+				  <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				  </button>
+				</div>
+				<div class="modal-footer">
+				  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalPosItem{{$menu->getMenuid()}}" onclick="closeModal('exampleModalCenter{{$menu->getMenuid()}}')">Cancel</button>
+				  <button type="button" onclick="confirmation(this)" class="btn btn-primary">Yes</button>
+				</div>
+			  </div>
+			</div>
+		</div> --}}
 		@endif
 	@endforeach
+
+	<div class="modal modal-pos fade" id="confirm-submit">
+		<div class="modal-dialog modal-sm" style="width: auto">
+			<div class="modal-content border-0">
+				<a href="#" data-bs-dismiss="modal" class="btn-close position-absolute top-0 end-0 m-4"></a>
+				<div class="modal-pos-product">
+					<div class="modal-pos-product-info" style="max-width: 100%; width: 100%; flex: 0 0 100%;">
+						<div class="fs-4 fw-semibold text-center">Confirm to Order</div>
+						<hr class="opacity-1">
+						<div class="row">
+							<div class="col-12">
+								<button type="submit" class="btn btn-theme fw-semibold d-flex justify-content-center align-items-center py-3 m-0 buttonAddCart w-100" data-form-id="formCart{{$menu->getMenuid()}}" id="buttonCart{{$menu->getMenuid()}}" onclick="confirmSubmitCart()">Yes<i class="fa fa-plus ms-2 my-n3"></i></button>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 	<!-- END #modalPosItem -->
+
+	<div class="modal-backdrop fade d-none"></div>
 @endsection

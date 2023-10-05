@@ -20,6 +20,10 @@ Route::group(['middleware' => ['authpos']], function () {
 	Route::post('/customer-order/{id}', [PosController::class, 'CustomerOrderDetail']);
 
 	Route::post('/doorder', [PosController::class, 'DoOrder']);
+	
+	Route::get('/dosubmitcart', [PosController::class, 'DoSubmitCart']);
+
+	Route::post('/dodeletecart', [PosController::class, 'DoDeleteCart']);
 
 	Route::get('/logout', [PosController::class, 'DoLogout']);
 

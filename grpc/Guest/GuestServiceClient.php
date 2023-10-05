@@ -128,4 +128,32 @@ class GuestServiceClient extends \Grpc\BaseStub {
         $metadata, $options);
     }
 
+    /**
+     * @param \Guest\GuestDeleteCartRequest $argument input argument
+     * @param array $metadata metadata
+     * @param array $options call options
+     * @return \Grpc\UnaryCall
+     */
+    public function DoGuestDeleteCart(\Guest\GuestDeleteCartRequest $argument,
+      $metadata = [], $options = []) {
+        return $this->_simpleRequest('/Guest.GuestService/DoGuestDeleteCart',
+        $argument,
+        ['\Guest\GuestDeleteCartResponse', 'decode'],
+        $metadata, $options);
+    }
+
+    /**
+     * @param \Guest\GuestSubmitAllCartRequest $argument input argument
+     * @param array $metadata metadata
+     * @param array $options call options
+     * @return \Grpc\UnaryCall
+     */
+    public function DoGuestSubmitAllCart(\Guest\GuestSubmitAllCartRequest $argument,
+      $metadata = [], $options = []) {
+        return $this->_simpleRequest('/Guest.GuestService/DoGuestSubmitAllCart',
+        $argument,
+        ['\Guest\GuestSubmitAllCartResponse', 'decode'],
+        $metadata, $options);
+    }
+
 }
