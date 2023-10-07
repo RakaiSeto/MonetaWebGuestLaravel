@@ -602,7 +602,7 @@ function getData(form) {
 }
 
 function confirmation(e) {
-    // formid = e.getAttribute('data-form-id')
+    formid = e.getAttribute('data-form-id')
     
     // if (confirm('Do you want to submit?')) {
         document.getElementById(formid).submit();

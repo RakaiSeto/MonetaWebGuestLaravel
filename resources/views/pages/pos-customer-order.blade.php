@@ -259,7 +259,7 @@
 					
 						<!-- BEGIN #orderHistoryTab -->
 						<div class="tab-pane fade h-100 show active" id="orderHistoryTab">
-							@if (count($orderHistory) == 0)
+							@if (count($orderHistory) == 0 && count($orderCart) == 0)
 							<div class="h-100 d-flex align-items-center justify-content-center text-center p-20">
 								<div>
 									<div class="mb-3 mt-n5">
@@ -378,6 +378,7 @@
 						<div class="d-flex align-items-center">
 							@if ($result->getInfo()[0]->getGrandtotal() == 0)
 								<div>Taxes (11%)</div>
+								<div class="d-none" id="tax-rate" data-tax="0"></div>
 								<div class="flex-1 text-end h6 mb-0" id="cartTax">Rp. {{number_format($result->getInfo()[0]->getTax())}}</div>
 							@else
 								
@@ -389,6 +390,7 @@
 						<div class="d-flex align-items-center">
 							@if ($result->getInfo()[0]->getGrandtotal() == 0)
 								<div>Service (0%)</div>
+								<div class="d-none" id="service-rate" data-service="0"></div>
 								<div class="flex-1 text-end h6 mb-0" id="cartService">Rp. {{number_format($result->getInfo()[0]->getService())}}</div>
 							@else
 								
