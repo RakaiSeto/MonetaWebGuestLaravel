@@ -124,7 +124,7 @@ message GuestMenuByIDList {
   double hot = 8;
   double price = 9;
   double stock = 10;
-  string imageurl = 11;
+  string imageurl = 11; 
   bool isavailable = 12;
 }
 message GuestMenuByIDResponse {
@@ -137,6 +137,7 @@ message GuestMenuByIDResponse {
 message GuestViewOrderRequest {
   string sessionid = 1;
   string qrcode = 2;
+  string custuuid = 3;
 }
 message GuestViewOrderList1 {
   string table = 1;
@@ -146,6 +147,9 @@ message GuestViewOrderList1 {
   double tax = 5;
   double grandtotal = 6;
   string orderstatus = 7;
+  bool isphone = 8;
+  double vatrate = 9;
+  double servicerate = 10;
 }
 message GuestViewOrderList2 {
   string id = 1;
@@ -173,6 +177,7 @@ message GuestAddOrderRequest {
   string menuid = 4;
   double amount = 5;
   repeated AddOrderAddon addon = 6;
+  string custuuid = 7;
 }
 
 message AddOrderAddon {
@@ -198,6 +203,7 @@ message GuestDeleteCartRequest {
   string qrcode = 2;
   string orderdetailid = 3;
   double amount = 4;
+  string custuuid = 5;
 }
 
 message GuestDeleteCartList {
@@ -215,6 +221,7 @@ message GuestDeleteCartResponse {
 message GuestSubmitAllCartRequest {
   string sessionid = 1;
   string qrcode = 2;
+  string custuuid = 3;
 }
 
 message GuestSubmitAllCartList {
@@ -225,6 +232,17 @@ message GuestSubmitAllCartResponse {
   string status = 1;
   string session = 2;
   repeated GuestSubmitAllCartList results = 3;
+}
+
+message InputPhoneNumberCustomerRequest {
+  string sessionid = 1;
+  string qrcode = 2;
+  string phone = 3;
+}
+
+message InputPhoneNumberCustomerResponse {
+  string status = 1;
+  string session = 2;
 }
 
 service GuestService {
@@ -241,5 +259,7 @@ service GuestService {
   rpc DoGuestAddOrder(GuestAddOrderRequest) returns (GuestAddOrderResponse) {}
   rpc DoGuestDeleteCart(GuestDeleteCartRequest) returns (GuestDeleteCartResponse) {}
   rpc DoGuestSubmitAllCart(GuestSubmitAllCartRequest) returns (GuestSubmitAllCartResponse) {}
+
+  rpc DoInputPhoneNumberCustomer(InputPhoneNumberCustomerRequest) returns (InputPhoneNumberCustomerResponse) {}
 
 }

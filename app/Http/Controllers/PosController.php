@@ -10,6 +10,7 @@ use Guest\GuestMenuRequest;
 use Guest\GuestServiceClient;
 use Guest\GuestSubmitAllCartRequest;
 use Guest\GuestViewOrderRequest;
+use Guest\InputPhoneNumberCustomerRequest;
 use Pos\GetCategoryRequest;
 use Illuminate\Http\Request;
 
@@ -205,10 +206,17 @@ class PosController extends Controller
     }
 
     function CustomerOrderDetail(Request $request) {
+        if(!isset($_COOKIE['cust_uuid'])) {
+            $theuuid = uuid_create(UUID_TYPE_RANDOM);
+            setcookie('cust_uuid', $theuuid, 0, '/');
+            $_COOKIE['cust_uuid'] = $theuuid;
+        }
+
         $category_list=[];
         $menuList=[];
         $orderHistory = [];
         $orderInCart = [];
+        $isphone = '';
 
         $client = new GuestServiceClient(config('moneta.guest.address'), [
             'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
@@ -242,6 +250,7 @@ class PosController extends Controller
         $grpcRequest = new GuestViewOrderRequest();
         $grpcRequest->setSessionid(session()->get('session'));
         $grpcRequest->setQrcode(session()->get('qrcode'));
+        $grpcRequest->setCustuuid($_COOKIE['cust_uuid']);
 
         list($grpcResults, $status) = $client->DoGuestViewOrder($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
         $grpcHitStatus = $status->code;
@@ -259,9 +268,10 @@ class PosController extends Controller
                         array_push($orderHistory, $value);
                     }
                 }
+                $isphone = $grpcResults->getInfo()[0]->getIsphone();
                 
 
-                return view('pages.pos-customer-order')->with('result', $grpcResults)->with('categories', $category_list)->with('menus', $menuList)->with('orderHistory', $orderHistory)->with('orderCart', $orderInCart);
+                return view('pages.pos-customer-order')->with('result', $grpcResults)->with('categories', $category_list)->with('menus', $menuList)->with('orderHistory', $orderHistory)->with('orderCart', $orderInCart)->with('isphone', $isphone);
             } else {
                 Log::debug('gagal get hold order detail '. $grpcResults->getStatus());
                 return redirect()->back()->withErrors('Error hold order detail with status' . $grpcResults->getStatus());
@@ -597,6 +607,7 @@ class PosController extends Controller
         $grpcRequest->setAmount(floatval($qty));
         $grpcRequest->setType("");
         $grpcRequest->setMenuid($menu_id);
+        $grpcRequest->setCustuuid($_COOKIE['cust_uuid']);
         $addonList = [];
         if ($addonArray[0] != "") {
             foreach ($addonArray as $theAddon) {
@@ -696,6 +707,7 @@ class PosController extends Controller
         $grpcRequest->setQrcode(session()->get('qrcode'));
         $grpcRequest->setOrderdetailid($payloadArray[0][1]);
         $grpcRequest->setAmount($payloadArray[1][1]);
+        $grpcRequest->setCustuuid($_COOKIE['cust_uuid']);
 
         list($grpcResults, $status) = $client->DoGuestDeleteCart($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
         $grpcHitStatus = $status->code;
@@ -723,6 +735,7 @@ class PosController extends Controller
         $grpcRequest = new GuestSubmitAllCartRequest();
         $grpcRequest->setSessionid(session()->get('session'));
         $grpcRequest->setQrcode(session()->get('qrcode'));
+        $grpcRequest->setCustuuid($_COOKIE['cust_uuid']);
 
         list($grpcResults, $status) = $client->DoGuestSubmitAllCart($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
         $grpcHitStatus = $status->code;
@@ -737,6 +750,36 @@ class PosController extends Controller
             }
         } else {
             http_response_code(500);
+            error_log($grpcHitStatus);
+            return redirect()->back();
+        }
+    }
+
+    function DoInsertPhone(Request $request) {
+        $orderid = $request->query('orderid');
+        $phone = $request->query('phone');
+
+        $client = new GuestServiceClient(config('moneta.guest.address'), [
+            'credentials' => \Grpc\ChannelCredentials::createInsecure(), 
+        ]);
+
+        $grpcRequest = new InputPhoneNumberCustomerRequest();
+        $grpcRequest->setSessionid(session()->get('session'));
+        $grpcRequest->setQrcode(session()->get('qrcode'));
+        $grpcRequest->setPhone($phone);
+
+        list($grpcResults, $status) = $client->DoInputPhoneNumberCustomer($grpcRequest, ['xid' => ['Moneta v.0.0.1']])->wait();
+        $grpcHitStatus = $status->code;
+        if ($grpcHitStatus === 0) {
+            if ($grpcResults->getStatus() === '000') {
+                $request->session()->put('session', $grpcResults->getSession());
+                return redirect()->back();
+            } else {
+                $request->session()->put('session', $grpcResults->getSession());
+                error_log($grpcResults->getStatus());
+                return redirect()->back();
+            }
+        } else {    
             error_log($grpcHitStatus);
             return redirect()->back();
         }

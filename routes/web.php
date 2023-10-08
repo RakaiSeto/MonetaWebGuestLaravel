@@ -19,6 +19,8 @@ Route::group(['middleware' => ['authpos']], function () {
 	
 	Route::post('/customer-order/{id}', [PosController::class, 'CustomerOrderDetail']);
 
+	Route::get('/doinsertphone', [PosController::class, 'DoInsertPhone']);
+
 	Route::post('/doorder', [PosController::class, 'DoOrder']);
 	
 	Route::get('/dosubmitcart', [PosController::class, 'DoSubmitCart']);

@@ -56,7 +56,7 @@
 						<div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4" data-type="{{$menu->getCategoryname()}}">
 								@if ($menu->getIsavailable() === true)
 								<a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem{{$menu->getMenuid()}}">
-									<div class="img" style="background-image: url(/assets/img/pos/product-1.jpg)"></div>
+									<div class="img" style="background-image: url(/assets/img/pos/{{$menu->getImageurl()}})"></div>
 									<div class="info">
 										<div class="title">{{$menu->getName()}}</div>
 										<div class="desc">{{$menu->getDescription()}}</div>
@@ -65,7 +65,7 @@
 								</a>
 								@else
 								<div class="pos-product not-available">
-									<div class="img" style="background-image: url(/assets/img/pos/product-1.jpg)"></div>
+									<div class="img" style="background-image: url(/assets/img/pos/{{$menu->getImageurl()}})"></div>
 									<div class="info">
 										<div class="title">{{$menu->getName()}}</div>
 										<div class="desc">{{$menu->getDescription()}}</div>
@@ -96,9 +96,6 @@
 					<!-- BEGIN pos-sidebar-header -->
 					<div class="pos-sidebar-header">
 						<div class="dropdown mx-auto d-flex" style="flex-direction: column">
-							<button class="btn btn-dark disabled" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-							  Cust name : {{$result->getInfo()[0]->getCustomer()}}
-							</button>
 						</div>
 					</div>
 					<!-- END pos-sidebar-header -->
@@ -275,7 +272,11 @@
 								@foreach ($orderHistory as $detail)
 								<div class="pos-order">
 									<div class="pos-order-product" id="parent{{$detail->getId()}}">
-										<div class="img" style="background-image: url(/assets/img/pos/product-1.jpg)"></div>
+										@foreach ($menus as $menu)
+										@if ($detail->getMenu() == $menu->getName())
+										<div class="img" style="background-image: url(/assets/img/pos/{{$menu->getImageurl()}})"></div>
+										@endif
+										@endforeach
 										<div class="flex-1">
 											<div class="d-flex">
 												@if (count($detail->getAddonname()) == 0)
@@ -315,7 +316,11 @@
 							@foreach ($orderCart as $detail)
 								<div class="pos-order">
 									<div class="pos-order-product" id="parentCart{{$detail->getId()}}">
-										<div class="img" style="background-image: url(/assets/img/pos/product-1.jpg)"></div>
+										@foreach ($menus as $menu)
+										@if ($detail->getMenu() == $menu->getName())
+										<div class="img" style="background-image: url(/assets/img/pos/{{$menu->getImageurl()}})"></div>
+										@endif
+										@endforeach
 										<div class="flex-1">
 											<div class="d-flex">
 												@if (count($detail->getAddonname()) == 0)
@@ -377,25 +382,25 @@
 						</div>
 						<div class="d-flex align-items-center">
 							@if ($result->getInfo()[0]->getGrandtotal() == 0)
-								<div>Taxes (11%)</div>
-								<div class="d-none" id="tax-rate" data-tax="0"></div>
+								<div>Taxes ({{$result->getInfo()[0]->getVatrate() * 100}}%)</div>
+								<div class="d-none" id="tax-rate" data-tax="{{$result->getInfo()[0]->getVatrate() * 100}}"></div>
 								<div class="flex-1 text-end h6 mb-0" id="cartTax">Rp. {{number_format($result->getInfo()[0]->getTax())}}</div>
 							@else
 								
-								<div>Taxes ({{number_format(($result->getInfo()[0]->getGrandtotal() / ($result->getInfo()[0]->getTotal() + $result->getInfo()[0]->getService()) - 1) * 100)}}%)</div>
-								<div class="d-none" id="tax-rate" data-tax="{{($result->getInfo()[0]->getGrandtotal() / ($result->getInfo()[0]->getTotal() + $result->getInfo()[0]->getService()) - 1) * 100}}"></div>
+								<div>Taxes ({{number_format($result->getInfo()[0]->getVatrate() * 100)}}%)</div>
+								<div class="d-none" id="tax-rate" data-tax="{{$result->getInfo()[0]->getVatrate() * 100}}"></div>
 								<div class="flex-1 text-end h6 mb-0" id="cartTax">Rp. {{number_format($result->getInfo()[0]->getTax())}}</div>
 							@endif
 						</div>
 						<div class="d-flex align-items-center">
 							@if ($result->getInfo()[0]->getGrandtotal() == 0)
-								<div>Service (0%)</div>
-								<div class="d-none" id="service-rate" data-service="0"></div>
+								<div>Service ({{$result->getInfo()[0]->getServicerate() * 100}}%)</div>
+								<div class="d-none" id="service-rate" data-service="{{$result->getInfo()[0]->getServicerate() * 100}}"></div>
 								<div class="flex-1 text-end h6 mb-0" id="cartService">Rp. {{number_format($result->getInfo()[0]->getService())}}</div>
 							@else
 								
-								<div>Service ({{number_format((($result->getInfo()[0]->getGrandtotal() - $result->getInfo()[0]->getTax() - $result->getInfo()[0]->getTotal()) / $result->getInfo()[0]->getTotal()) * 100)}}%)</div>
-								<div class="d-none" id="service-rate" data-service="{{(($result->getInfo()[0]->getGrandtotal() - $result->getInfo()[0]->getTax() - $result->getInfo()[0]->getTotal()) / $result->getInfo()[0]->getTotal()) * 100}}"></div>
+								<div>Service ({{$result->getInfo()[0]->getServicerate() * 100}}%)</div>
+								<div class="d-none" id="service-rate" data-service="{{$result->getInfo()[0]->getServicerate() * 100}}"></div>
 								<div class="flex-1 text-end h6 mb-0" id="cartService">Rp. {{number_format($result->getInfo()[0]->getService())}}</div>
 							@endif
 						</div>
@@ -448,7 +453,7 @@
 					<a href="#" data-bs-dismiss="modal" class="btn-close position-absolute top-0 end-0 m-4"></a>
 					<div class="modal-pos-product">
 						<div class="modal-pos-product-img">
-							<div class="img" style="background-image: url(/assets/img/pos/product-1.jpg)"></div>
+							<div class="img" style="background-image: url(/assets/img/pos/{{$menu->getImageurl()}})"></div>
 						</div>
 						<div class="modal-pos-product-info">
 							<div class="fs-4 fw-semibold">{{$menu->getName()}}</div>
@@ -543,7 +548,45 @@
 			</div>
 		</div>
 	</div>
-	<!-- END #modalPosItem -->
 
+	@if ($isphone == true)
+	<div class="modal modal-pos fade" id="new-phone">
+		@else
+		{{-- <div class="modal modal-pos fade" id="new-phone"> --}}
+	<div class="modal modal-pos show" id="new-phone" style="display: block; height:100%">
+	@endif
+		<div class="modal-dialog modal-sm" style="width: auto">
+			<div class="modal-content border-0">
+				<div class="modal-pos-product">
+					<div class="modal-pos-product-info" style="max-width: 100%; width: 100%; flex: 0 0 100%;">
+						<div class="fs-4 fw-semibold text-center">Please input your phone number</div>
+						<hr class="opacity-1">
+						<div class="row">
+							<div class="col-12 d-flex align-items-center">
+								<div class="fs-5 mb-2">Phone Number</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-12 d-flex align-items-center">
+								<input type="number" class="form-control border-1 border-blue mb-3" id="submit-phone" name="phone" placeholder="insert phone number here">
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-12">
+								<button type="submit" class="btn btn-theme fw-semibold d-flex justify-content-center align-items-center py-3 m-0 buttonAddCart w-100" data-form-id="formCart{{$menu->getMenuid()}}" id="buttonCart{{$menu->getMenuid()}}" onclick="confirmInputPhone()">Confirm<i class="fa fa-check ms-2 my-n3"></i></button>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- END #modalPosItem -->
+	@if ($isphone == true)
 	<div class="modal-backdrop fade d-none"></div>
+	@else
+	{{-- <div class="modal-backdrop fade d-none"></div> --}}
+	<div class="modal-backdrop show"></div>
+	@endif
 @endsection

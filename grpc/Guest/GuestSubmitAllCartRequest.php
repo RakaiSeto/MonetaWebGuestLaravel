@@ -21,6 +21,10 @@ class GuestSubmitAllCartRequest extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>string qrcode = 2;</code>
      */
     protected $qrcode = '';
+    /**
+     * Generated from protobuf field <code>string custuuid = 3;</code>
+     */
+    protected $custuuid = '';
 
     /**
      * Constructor.
@@ -30,6 +34,7 @@ class GuestSubmitAllCartRequest extends \Google\Protobuf\Internal\Message
      *
      *     @type string $sessionid
      *     @type string $qrcode
+     *     @type string $custuuid
      * }
      */
     public function __construct($data = NULL) {
@@ -77,6 +82,28 @@ class GuestSubmitAllCartRequest extends \Google\Protobuf\Internal\Message
     {
         GPBUtil::checkString($var, True);
         $this->qrcode = $var;
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>string custuuid = 3;</code>
+     * @return string
+     */
+    public function getCustuuid()
+    {
+        return $this->custuuid;
+    }
+
+    /**
+     * Generated from protobuf field <code>string custuuid = 3;</code>
+     * @param string $var
+     * @return $this
+     */
+    public function setCustuuid($var)
+    {
+        GPBUtil::checkString($var, True);
+        $this->custuuid = $var;
 
         return $this;
     }

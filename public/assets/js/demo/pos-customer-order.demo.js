@@ -7,6 +7,15 @@ Website: http://www.seantheme.com/studio/
 
 var currentURL = window.location.href
 
+function uuidv4() { 
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    .replace(/[xy]/g, function (c) { 
+        const r = Math.random() * 16 | 0,  
+            v = c == 'x' ? r : (r & 0x3 | 0x8); 
+        return v.toString(16); 
+    }); 
+}
+
 var addCartPrice = function () {
     const elements = Array.from(document.getElementsByClassName('price-order-cart'));
     
@@ -84,6 +93,9 @@ var handleFilter = function () {
 
 document.addEventListener("DOMContentLoaded", function () {
     console.log(window.location.href)
+    if (getCookie('cust_uuid') == "") {
+        document.cookie = "cust_uuid=" + uuidv4() + "; path=/";
+    }
     handleFilter();
     addCartPrice();
 
@@ -602,10 +614,12 @@ function getData(form) {
 }
 
 function confirmation(e) {
+    // format = cart=menuid
+
     formid = e.getAttribute('data-form-id')
     
     // if (confirm('Do you want to submit?')) {
-        document.getElementById(formid).submit();
+    document.getElementById(formid).submit();
     // } else {
     //     return false;
     // }
@@ -665,3 +679,31 @@ function confirmation(e) {
  function closeModal(e) {
     document.getElementById(e).classList.remove('show');
  }
+
+ function confirmInputPhone(e) {
+    currentURLToChange = window.location.href;
+    currentURLToChange = currentURLToChange.replaceAll("#", "")
+    currentURLToChange = currentURLToChange.replaceAll("://", "")
+    currentURLArr = currentURLToChange.split("/")
+    orderid = currentURLArr[2]
+    phone = document.getElementById("submit-phone").value;
+
+    url = '/doinsertphone' + '?phone=' + phone + '&orderid=' + orderid;
+    location.replace(url);
+ }
+
+ function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }

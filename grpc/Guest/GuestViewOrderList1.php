@@ -41,6 +41,18 @@ class GuestViewOrderList1 extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>string orderstatus = 7;</code>
      */
     protected $orderstatus = '';
+    /**
+     * Generated from protobuf field <code>bool isphone = 8;</code>
+     */
+    protected $isphone = false;
+    /**
+     * Generated from protobuf field <code>double vatrate = 9;</code>
+     */
+    protected $vatrate = 0.0;
+    /**
+     * Generated from protobuf field <code>double servicerate = 10;</code>
+     */
+    protected $servicerate = 0.0;
 
     /**
      * Constructor.
@@ -55,6 +67,9 @@ class GuestViewOrderList1 extends \Google\Protobuf\Internal\Message
      *     @type float $tax
      *     @type float $grandtotal
      *     @type string $orderstatus
+     *     @type bool $isphone
+     *     @type float $vatrate
+     *     @type float $servicerate
      * }
      */
     public function __construct($data = NULL) {
@@ -212,6 +227,72 @@ class GuestViewOrderList1 extends \Google\Protobuf\Internal\Message
     {
         GPBUtil::checkString($var, True);
         $this->orderstatus = $var;
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>bool isphone = 8;</code>
+     * @return bool
+     */
+    public function getIsphone()
+    {
+        return $this->isphone;
+    }
+
+    /**
+     * Generated from protobuf field <code>bool isphone = 8;</code>
+     * @param bool $var
+     * @return $this
+     */
+    public function setIsphone($var)
+    {
+        GPBUtil::checkBool($var);
+        $this->isphone = $var;
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>double vatrate = 9;</code>
+     * @return float
+     */
+    public function getVatrate()
+    {
+        return $this->vatrate;
+    }
+
+    /**
+     * Generated from protobuf field <code>double vatrate = 9;</code>
+     * @param float $var
+     * @return $this
+     */
+    public function setVatrate($var)
+    {
+        GPBUtil::checkDouble($var);
+        $this->vatrate = $var;
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>double servicerate = 10;</code>
+     * @return float
+     */
+    public function getServicerate()
+    {
+        return $this->servicerate;
+    }
+
+    /**
+     * Generated from protobuf field <code>double servicerate = 10;</code>
+     * @param float $var
+     * @return $this
+     */
+    public function setServicerate($var)
+    {
+        GPBUtil::checkDouble($var);
+        $this->servicerate = $var;
 
         return $this;
     }

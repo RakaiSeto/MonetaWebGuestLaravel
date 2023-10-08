@@ -39,6 +39,10 @@ class GuestAddOrderRequest extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>repeated .Guest.AddOrderAddon addon = 6;</code>
      */
     private $addon;
+    /**
+     * Generated from protobuf field <code>string custuuid = 7;</code>
+     */
+    protected $custuuid = '';
 
     /**
      * Constructor.
@@ -52,6 +56,7 @@ class GuestAddOrderRequest extends \Google\Protobuf\Internal\Message
      *     @type string $menuid
      *     @type float $amount
      *     @type array<\Guest\AddOrderAddon>|\Google\Protobuf\Internal\RepeatedField $addon
+     *     @type string $custuuid
      * }
      */
     public function __construct($data = NULL) {
@@ -187,6 +192,28 @@ class GuestAddOrderRequest extends \Google\Protobuf\Internal\Message
     {
         $arr = GPBUtil::checkRepeatedField($var, \Google\Protobuf\Internal\GPBType::MESSAGE, \Guest\AddOrderAddon::class);
         $this->addon = $arr;
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>string custuuid = 7;</code>
+     * @return string
+     */
+    public function getCustuuid()
+    {
+        return $this->custuuid;
+    }
+
+    /**
+     * Generated from protobuf field <code>string custuuid = 7;</code>
+     * @param string $var
+     * @return $this
+     */
+    public function setCustuuid($var)
+    {
+        GPBUtil::checkString($var, True);
+        $this->custuuid = $var;
 
         return $this;
     }

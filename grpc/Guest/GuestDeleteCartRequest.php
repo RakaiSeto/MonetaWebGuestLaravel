@@ -29,6 +29,10 @@ class GuestDeleteCartRequest extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>double amount = 4;</code>
      */
     protected $amount = 0.0;
+    /**
+     * Generated from protobuf field <code>string custuuid = 5;</code>
+     */
+    protected $custuuid = '';
 
     /**
      * Constructor.
@@ -40,6 +44,7 @@ class GuestDeleteCartRequest extends \Google\Protobuf\Internal\Message
      *     @type string $qrcode
      *     @type string $orderdetailid
      *     @type float $amount
+     *     @type string $custuuid
      * }
      */
     public function __construct($data = NULL) {
@@ -131,6 +136,28 @@ class GuestDeleteCartRequest extends \Google\Protobuf\Internal\Message
     {
         GPBUtil::checkDouble($var);
         $this->amount = $var;
+
+        return $this;
+    }
+
+    /**
+     * Generated from protobuf field <code>string custuuid = 5;</code>
+     * @return string
+     */
+    public function getCustuuid()
+    {
+        return $this->custuuid;
+    }
+
+    /**
+     * Generated from protobuf field <code>string custuuid = 5;</code>
+     * @param string $var
+     * @return $this
+     */
+    public function setCustuuid($var)
+    {
+        GPBUtil::checkString($var, True);
+        $this->custuuid = $var;
 
         return $this;
     }

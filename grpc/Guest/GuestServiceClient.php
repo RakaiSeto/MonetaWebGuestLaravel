@@ -156,4 +156,18 @@ class GuestServiceClient extends \Grpc\BaseStub {
         $metadata, $options);
     }
 
+    /**
+     * @param \Guest\InputPhoneNumberCustomerRequest $argument input argument
+     * @param array $metadata metadata
+     * @param array $options call options
+     * @return \Grpc\UnaryCall
+     */
+    public function DoInputPhoneNumberCustomer(\Guest\InputPhoneNumberCustomerRequest $argument,
+      $metadata = [], $options = []) {
+        return $this->_simpleRequest('/Guest.GuestService/DoInputPhoneNumberCustomer',
+        $argument,
+        ['\Guest\InputPhoneNumberCustomerResponse', 'decode'],
+        $metadata, $options);
+    }
+
 }
